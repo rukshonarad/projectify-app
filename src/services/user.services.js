@@ -2,10 +2,11 @@ import { prisma } from "../prisma/index.js";
 
 class UserService {
     signUp = async (input) => {
+        console.log(input);
         try {
             await prisma.user.create({ data: input });
         } catch (error) {
-            return error;
+            throw new Error(error);
         }
     };
 }
