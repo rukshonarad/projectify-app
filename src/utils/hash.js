@@ -1,8 +1,14 @@
-import crypto from "prypto";
+import bcrypt from "bcryptjs";
+class Bcrypt {
+    hash = async (password) => {
+        const salt = await bcrypt.genSalt(10);
+        const hash = await bcrypt.hash(password, salt);
+        return hash;
+    };
 
-export const hashFunction = (input) => {
-    const hash = crypto.SHA256(input);
-    const hashString = hash.toString(crypto.enc.Hex);
-    console.log(hashString);
-    return hashString;
-};
+    compare = async (password, hash) => {
+        return await bcrypt.compare(password, hash);
+    };
+}
+
+export const hasher = new Bcrypt();

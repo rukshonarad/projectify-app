@@ -1,15 +1,19 @@
 import { prisma } from "../prisma/index.js";
+import { hasher } from "../utils/hash.js";
 
 class UserService {
     signUp = async (input) => {
         try {
+            const hashedPassword = await hasher.hash(input.password);
             await prisma.user.create({
-                data: input
+                data: { ...input, password: hashedPassword }
             });
         } catch (error) {
+            console.log(error);
             throw new Error(error);
         }
     };
+
     login = async (input) => {
         try {
             const user = await prisma.user.findFirst({
@@ -17,15 +21,18 @@ class UserService {
                     email: input.email
                 }
             });
-            if (user) {
-                if (user.password !== input.password) {
-                    throw new Error("Invalid Cridential");
-                } else {
-                    throw new Error("Invalid Cridential");
-                }
+
+            if (!user) throw new Error("Invalid Credentials");
+
+            const isPasswordMatchs = hasher.compare(
+                input.password,
+                user.password
+            );
+            if (!isPasswordMatchs) {
+                throw new Error("Invalid Credentials");
             }
         } catch (error) {
-            throw new Error(error);
+            throw error;
         }
     };
 }
