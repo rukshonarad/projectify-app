@@ -35,6 +35,14 @@ class UserService {
             throw error;
         }
     };
+    update = async (input, id) => {
+        try {
+            await prisma.user.update({ where: { id }, data: input });
+        } catch (error) {
+            console.log(error);
+            throw error;
+        }
+    };
 }
 
 export const userService = new UserService();
