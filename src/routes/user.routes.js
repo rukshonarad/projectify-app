@@ -4,7 +4,8 @@ const userRouter = Router();
 
 userRouter.post("/sign-up", userController.signUp);
 userRouter.post("/login", userController.login);
-// userRouter.patch("/:id", userController.update);
-// userRouter.get("/activate", userController.activate);
+userRouter.get("/activate", userController.activate);
+userRouter.patch("/forgot-password", userController.forgotPassword);
+userRouter.patch("/reset-password", userController.resetPassword);
 
 export { userRouter };

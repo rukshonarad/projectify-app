@@ -1,5 +1,4 @@
 import cryptojs from "crypto-js";
-
 class Crypto {
     generateRandomString = () => {
         const chars = "abcdefghijklmnopqrstuvwxyz";
