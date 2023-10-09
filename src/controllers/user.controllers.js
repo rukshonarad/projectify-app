@@ -3,10 +3,9 @@ import { userService } from "../services/user.services.js";
 class UserController {
     signUp = async (req, res) => {
         const { body } = req;
-
         const input = {
             email: body.email,
-            preferredFirstName: body.preferredName,
+            preferredFirstName: body.preferredFirstName,
             firstName: body.firstName,
             lastName: body.lastName,
             password: body.password,
@@ -19,14 +18,12 @@ class UserController {
                 message: "Success"
             });
         } catch (error) {
-            res.status(500).json({
-                message: error.message
-            });
+            res.status(500).json({ message: error.message });
         }
     };
-
     login = async (req, res) => {
         const { body } = req;
+
         const input = {
             email: body.email,
             password: body.password
@@ -34,7 +31,6 @@ class UserController {
 
         try {
             await userService.login(input);
-
             res.status(200).json({
                 message: "Success"
             });
@@ -48,21 +44,28 @@ class UserController {
             });
         }
     };
+    activate = async (req, res) => {
+        const {
+            query: { activationToken }
+        } = req;
 
-    update = async (req, res) => {
-        const allowedFields = ["firstName", "lastName", "bio"];
-        const { body, params } = req;
-        const input = {};
-        allowedFields.forEach((field) => {
-            if (body[field]) {
-                input[field] = body[field];
-            }
-        });
+        if (!activationToken) {
+            res.status(400).json({
+                message: "Activation Token is missing"
+            });
+            return;
+        }
+
         try {
-            await userService.update(input, params.id);
-            res.status(204).send();
+            await userService.activate(activationToken);
+
+            res.status(200).json({
+                message: "Success"
+            });
         } catch (error) {
-            res.status(500).json({ message: error });
+            res.status(500).json({
+                message: error.message
+            });
         }
     };
 }

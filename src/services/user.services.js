@@ -1,15 +1,23 @@
 import { prisma } from "../prisma/index.js";
-import { hasher } from "../utils/hash.js";
+import { hasher, crypto } from "../utils/hash.js";
+import { mailer } from "../utils/mailer.js";
 
 class UserService {
     signUp = async (input) => {
         try {
             const hashedPassword = await hasher.hash(input.password);
+            const activationToken = crypto.createToken();
+            const hashedActivationToken = crypto.hash(activationToken);
             await prisma.user.create({
-                data: { ...input, password: hashedPassword }
+                data: {
+                    ...input,
+                    password: hashedPassword,
+                    activationToken: hashedActivationToken
+                }
             });
+
+            await mailer.sendActivationMail(input.email, activationToken);
         } catch (error) {
-            console.log(error);
             throw new Error(error);
         }
     };
@@ -19,27 +27,84 @@ class UserService {
             const user = await prisma.user.findFirst({
                 where: {
                     email: input.email
+                },
+                select: {
+                    id: true,
+                    status: true,
+                    password: true
                 }
             });
 
             if (!user) throw new Error("Invalid Credentials");
 
-            const isPasswordMatchs = hasher.compare(
+            if (user.status === "INACTIVE") {
+                const activationToken = crypto.createToken();
+                const hashedActivationToken = crypto.hash(activationToken);
+
+                await prisma.user.update({
+                    where: {
+                        id: user.id
+                    },
+                    data: {
+                        activationToken: hashedActivationToken
+                    }
+                });
+
+                await mailer.sendActivationMail(
+                    input.email,
+                    hashedActivationToken
+                );
+
+                throw new Error(
+                    "We just sent you activation email. Please, follow the instructions."
+                );
+            }
+
+            const isPasswordMatches = await hasher.compare(
                 input.password,
                 user.password
             );
-            if (!isPasswordMatchs) {
+
+            if (!isPasswordMatches) {
                 throw new Error("Invalid Credentials");
             }
         } catch (error) {
             throw error;
         }
     };
-    update = async (input, id) => {
+    activate = async (token) => {
         try {
-            await prisma.user.update({ where: { id }, data: input });
+            const hashedActivationToken = crypto.hash(token);
+            const user = await prisma.user.findFirst({
+                where: {
+                    activationToken: hashedActivationToken
+                },
+                select: {
+                    id: true,
+                    activationToken: true
+                }
+            });
+
+            if (!user) {
+                throw new Error("User was not found with provided token");
+            }
+
+            const isTokenMatches = crypto.compare(token, user.activationToken);
+
+            if (!isTokenMatches) {
+                throw new Error("Invalid Token");
+            }
+
+            await prisma.user.update({
+                where: {
+                    id: user.id
+                },
+                data: {
+                    status: "ACTIVE",
+                    activationToken: ""
+                }
+            });
         } catch (error) {
-            console.log(error);
             throw error;
         }
     };
