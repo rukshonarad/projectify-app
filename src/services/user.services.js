@@ -1,7 +1,6 @@
 import { prisma } from "../prisma/index.js";
-import { crypto } from "../utils/crypto.js";
+import { crypto, bcrypt } from "../utils/hash.js";
 import { mailer } from "../utils/mailer.js";
-import { bcrypt } from "../utils/bcrypt.js";
 import { date } from "../utils/date.js";
 
 class UserService {
@@ -93,7 +92,7 @@ class UserService {
                 },
                 data: {
                     status: "ACTIVE",
-                    activationToken: ""
+                    activationToken: null
                 }
             });
         } catch (error) {
@@ -127,7 +126,7 @@ class UserService {
                 },
                 data: {
                     passwordResetToken: hashedPasswordResetToken,
-                    passwordResetTokenExparationDate: date.addMinutes(10)
+                    passwordResetTokenExpirationDate: date.addMinutes(10)
                 }
             });
 
@@ -147,7 +146,7 @@ class UserService {
                 select: {
                     id: true,
                     passwordResetToken: true,
-                    passwordResetTokenExparationDate: true
+                    passwordResetTokenExpirationDate: true
                 }
             });
 
@@ -157,7 +156,7 @@ class UserService {
 
             const currentTime = new Date();
             const tokenExpDate = new Date(
-                user.passwordResetTokenExparationDate
+                user.passwordResetTokenExpirationDate
             );
 
             if (tokenExpDate < currentTime) {
@@ -172,10 +171,11 @@ class UserService {
                 data: {
                     password: await bcrypt.hash(password),
                     passwordResetToken: null,
-                    passwordResetTokenExparationDate: null
+                    passwordResetTokenExpirationDate: null
                 }
             });
         } catch (error) {
+            console.log(error);
             throw error;
         }
     };
