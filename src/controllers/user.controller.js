@@ -1,4 +1,4 @@
-import { userService } from "../services/user.services.js";
+import { userService } from "../services/user.service.js";
 
 class UserController {
     signUp = async (req, res) => {
@@ -32,18 +32,10 @@ class UserController {
         };
 
         try {
-            const sessionId = await userService.login(input);
-            const signedSessionId =
-                "s:" + signature.sign(sessionId, process.env.COOKIE_SECRET);
-            console.log(signedSessionId);
-            console.log(sessionId);
-
-            res.cookie("sessionId", signedSessionId, {
-                maxAge: 10000,
-                httpOnly: true,
-                secure: true
+            const jwt = await userService.login(input);
+            res.status(200).json({
+                token: jwt
             });
-            res.send();
         } catch (error) {
             let statusCode = 500;
             if (error.message === "Invalid Credentials") {
@@ -142,9 +134,10 @@ class UserController {
     };
 
     getMe = async (req, res) => {
-        const { sessionId } = req;
+        const { userId } = req;
+
         try {
-            const me = await userService.getMe(sessionId);
+            const me = await userService.getMe(userId);
 
             res.status(200).json({
                 data: me
@@ -157,11 +150,10 @@ class UserController {
     };
 
     logout = async (req, res) => {
-        const { sessionId } = req;
         try {
-            await userService.logout(sessionId);
-
-            res.status(204).send();
+            res.status(200).send({
+                token: ""
+            });
         } catch (error) {
             res.status(500).json({
                 message: error.message
@@ -169,4 +161,5 @@ class UserController {
         }
     };
 }
+
 export const userController = new UserController();
