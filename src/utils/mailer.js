@@ -1,4 +1,5 @@
 import nodemailer from "nodemailer";
+
 class Mailer {
     constructor() {
         this.transporter = nodemailer.createTransport({
@@ -18,16 +19,30 @@ class Mailer {
             throw error;
         }
     };
+
     sendActivationMail = async (emailAddress, token) => {
         try {
             this.send({
                 to: emailAddress,
-                subject: "Activate Your email",
-                html: `<a href = "http://localhost:3000/users/activate?activationToken=${token}">Verify your email</a>`
+                subject: "Projectify App | Activate Your Account",
+                html: `<a style="color: red;" href="http://localhost:4000/users/activate?activationToken=${token}">Verify your email</a>`
+            });
+        } catch (error) {
+            throw error;
+        }
+    };
+
+    sendPasswordResetToken = async (emailAddress, token) => {
+        try {
+            this.send({
+                to: emailAddress,
+                subject: "Projectify App | Reset Password",
+                html: `<a href="http://localhost:3000/reset-password/passwordResetToken=${token}">Reset Your Password</a>`
             });
         } catch (error) {
             throw error;
         }
     };
 }
+
 export const mailer = new Mailer();
