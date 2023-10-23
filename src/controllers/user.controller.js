@@ -1,5 +1,6 @@
 import { userService } from "../services/user.service.js";
 import { catchAsync } from "../utils/catch-async.js";
+import { CustomError } from "../utils/custom-error.js";
 
 class UserController {
     signUp = catchAsync(async (req, res) => {
@@ -32,32 +33,20 @@ class UserController {
         });
     });
 
-    activate = async (req, res) => {
+    activate = catchAsync(async (req, res) => {
         const {
             query: { activationToken }
         } = req;
 
         if (!activationToken) {
-            res.status(400).json({
-                message: "Activation Token is missing"
-            });
-
-            return;
+            throw new CustomError("Activation Token is missing", 400);
         }
+        await userService.activate(activationToken);
 
-        try {
-            await userService.activate(activationToken);
-
-            res.status(200).json({
-                message: "Success"
-            });
-        } catch (error) {
-            console.log(error);
-            res.status(500).json({
-                message: error.message
-            });
-        }
-    };
+        res.status(200).json({
+            message: "Success"
+        });
+    });
 
     forgotPassword = async (req, res) => {
         const {

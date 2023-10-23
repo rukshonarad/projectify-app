@@ -78,34 +78,32 @@ class UserService {
     };
 
     activate = async (token) => {
-        try {
-            const hashedActivationToken = crypto.hash(token);
-            const user = await prisma.user.findFirst({
-                where: {
-                    activationToken: hashedActivationToken
-                },
-                select: {
-                    id: true,
-                    activationToken: true
-                }
-            });
-
-            if (!user) {
-                throw new Error("Invalid Token");
+        const hashedActivationToken = crypto.hash(token);
+        const user = await prisma.user.findFirst({
+            where: {
+                activationToken: hashedActivationToken
+            },
+            select: {
+                id: true,
+                activationToken: true
             }
+        });
 
-            await prisma.user.update({
-                where: {
-                    id: user.id
-                },
-                data: {
-                    status: "ACTIVE",
-                    activationToken: null
-                }
-            });
-        } catch (error) {
-            throw error;
+        if (!user) {
+            throw new Error("Invalid Token");
         }
+        if (!user) {
+            throw new CustomError("Invalid Activation Token ", 400);
+        }
+        await prisma.user.update({
+            where: {
+                id: user.id
+            },
+            data: {
+                status: "ACTIVE",
+                activationToken: null
+            }
+        });
     };
 
     forgotPassword = async (email) => {
