@@ -1,7 +1,8 @@
 import { userService } from "../services/user.service.js";
+import { catchAsync } from "../utils/catch-async.js";
 
 class UserController {
-    signUp = async (req, res) => {
+    signUp = catchAsync(async (req, res) => {
         const { body } = req;
 
         const input = {
@@ -12,40 +13,24 @@ class UserController {
             password: body.password
         };
 
-        try {
-            await userService.signUp(input);
-            res.status(201).json({
-                message: "Success"
-            });
-        } catch (error) {
-            res.status(500).json({
-                message: error.message
-            });
-        }
-    };
+        await userService.signUp(input);
+        res.status(201).json({
+            message: "Success"
+        });
+    });
 
-    login = async (req, res) => {
+    login = catchAsync(async (req, res) => {
         const { body } = req;
         const input = {
             email: body.email,
             password: body.password
         };
 
-        try {
-            const jwt = await userService.login(input);
-            res.status(200).json({
-                token: jwt
-            });
-        } catch (error) {
-            let statusCode = 500;
-            if (error.message === "Invalid Credentials") {
-                statusCode = 401;
-            }
-            res.status(statusCode).json({
-                error: error.message
-            });
-        }
-    };
+        const jwt = await userService.login(input);
+        res.status(200).json({
+            token: jwt
+        });
+    });
 
     activate = async (req, res) => {
         const {
