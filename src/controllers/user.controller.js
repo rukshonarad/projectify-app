@@ -48,93 +48,65 @@ class UserController {
         });
     });
 
-    forgotPassword = async (req, res) => {
+    forgotPassword = catchAsync(async (req, res) => {
         const {
             body: { email }
         } = req;
 
-        try {
-            await userService.forgotPassword(email);
-            res.status(200).json({
-                message: "Password reset email has been sent"
-            });
-        } catch (error) {
-            res.status(500).json({
-                message: error.message
-            });
-        }
-    };
+        await userService.forgotPassword(email);
+        res.status(200).json({
+            message: "Password reset email has been sent"
+        });
+    });
 
-    resetPassword = async (req, res) => {
+    resetPassword = catchAsync(async (req, res) => {
         const {
             body: { password, passwordConfirm },
             headers
         } = req;
-        if (!password || !passwordConfirm) {
-            res.status(400).json({
-                message: "Password and Password Confirm is required"
-            });
-            return;
-        }
 
-        if (password !== passwordConfirm) {
-            res.status(400).json({
-                message: "Password and Password Confirm does not match"
-            });
-            return;
-        }
-        if (!headers.authorization) {
-            res.status(400).json({
-                message: "Reset Token is missing"
-            });
-        }
+        if (!password || !passwordConfirm)
+            throw new CustomError(
+                "Password and Password Confirm is required",
+                400
+            );
+
+        if (password !== passwordConfirm)
+            throw new CustomError(
+                "Password and Password Confirm does not match",
+                400
+            );
+
+        if (!headers.authorization)
+            throw new CustomError("Reset Token is missing", 400);
+
         const [bearer, token] = headers.authorization.split(" ");
-        if (bearer !== "Bearer" || !token) {
-            res.status(400).json({
-                message: "Invalid Token"
-            });
-        }
 
-        try {
-            await userService.resetPassword(token, password);
-            res.status(200).json({
-                message: "Password successfully updated"
-            });
-        } catch (error) {
-            res.status(500).json({
-                message: error.message
-            });
-        }
-    };
+        if (bearer !== "Bearer" || !token)
+            throw new CustomError("Invalid Token", 400);
 
-    getMe = async (req, res) => {
+        await userService.resetPassword(token, password);
+        res.status(200).json({
+            message: "Password successfully updated"
+        });
+    });
+
+    getMe = catchAsync(async (req, res) => {
         const { userId } = req;
 
-        try {
-            const me = await userService.getMe(userId);
+        const me = await userService.getMe(userId);
 
-            res.status(200).json({
-                data: me
-            });
-        } catch (error) {
-            res.status(500).json({
-                message: error.message
-            });
-        }
-    };
+        res.status(200).json({
+            data: me
+        });
+    });
 
-    logout = async (req, res) => {
-        try {
-            res.status(200).send({
-                token: ""
-            });
-        } catch (error) {
-            res.status(500).json({
-                message: error.message
-            });
-        }
-    };
-    createTask = async (req, res) => {
+    logout = catchAsync(async (req, res) => {
+        res.status(200).send({
+            token: ""
+        });
+    });
+    createTask = catchAsync(async (req, res) => {
         const { userId, body } = req;
 
         const input = {
@@ -151,34 +123,22 @@ class UserController {
             return;
         }
 
-        try {
-            const data = await userService.createTask(userId, input);
+        const data = await userService.createTask(userId, input);
 
-            res.status(201).json({
-                data
-            });
-        } catch (error) {
-            res.status(500).json({
-                message: error.message
-            });
-        }
-    };
+        res.status(201).json({
+            data
+        });
+    });
 
-    getTasks = async (req, res) => {
+    getTasks = catchAsync(async (req, res) => {
         const { userId } = req;
 
-        try {
-            const tasks = await userService.getTasks(userId);
+        const tasks = await userService.getTasks(userId);
 
-            res.status(200).json({
-                data: tasks
-            });
-        } catch (error) {
-            res.status(500).json({
-                message: error.message
-            });
-        }
-    };
+        res.status(200).json({
+            data: tasks
+        });
+    });
 
     getTask = async (req, res) => {
         const { userId, params } = req;
