@@ -115,13 +115,8 @@ class UserController {
             due: body.due
         };
 
-        if (!input.title || !input.due) {
-            res.status(400).json({
-                message: "Title or Due date cannot be empty"
-            });
-
-            return;
-        }
+        if (!input.title || !input.due)
+            throw new CustomError("Title or Due date cannot be empty", 400);
 
         const data = await userService.createTask(userId, input);
 
@@ -140,45 +135,24 @@ class UserController {
         });
     });
 
-    getTask = async (req, res) => {
+    getTask = catchAsync(async (req, res) => {
         const { userId, params } = req;
 
-        try {
-            const task = await userService.getTask(userId, params.taskId);
+        const task = await userService.getTask(userId, params.taskId);
 
-            res.status(200).json({
-                data: task
-            });
-        } catch (error) {
-            let status = 500;
-            if (error.message === "Task not found") {
-                status = 404;
-            }
-            res.status(status).json({
-                message: error.message
-            });
-        }
-    };
+        res.status(200).json({
+            data: task
+        });
+    });
 
-    deleteTask = async (req, res) => {
+    deleteTask = catchAsync(async (req, res) => {
         const { userId, params } = req;
 
-        try {
-            await userService.deleteTask(userId, params.taskId);
-            res.status(204).send();
-        } catch (error) {
-            let status = 500;
-            if (error.message === "Task not found") {
-                status = 404;
-            }
+        await userService.deleteTask(userId, params.taskId);
+        res.status(204).send();
+    });
 
-            res.status(status).json({
-                message: error.message
-            });
-        }
-    };
-
-    updateTask = async (req, res) => {
+    updateTask = catchAsync(async (req, res) => {
         const { userId, params, body } = req;
 
         const input = {};
@@ -193,27 +167,12 @@ class UserController {
         }
 
         if (!Object.keys(input).length) {
-            res.status(400).json({
-                message: "Update data not provided"
-            });
-
-            return;
+            throw new CustomError("Update data not provided", 400);
         }
 
-        try {
-            await userService.updateTask(userId, params.taskId, input);
-            res.status(204).send();
-        } catch (error) {
-            let status = 500;
-            if (error.message === "Task not found") {
-                status = 404;
-            }
-
-            res.status(status).json({
-                message: error.message
-            });
-        }
-    };
+        await userService.updateTask(userId, params.taskId, input);
+        res.status(204).send();
+    });
 }
 
 export const userController = new UserController();
