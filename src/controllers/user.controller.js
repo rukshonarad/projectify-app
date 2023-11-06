@@ -14,7 +14,12 @@ class UserController {
             password: body.password
         };
 
-        await userService.signUp(input);
+        const companyInput = {
+            name: body.company.name,
+            position: body.company.position
+        };
+
+        await userService.signUp(userInput, companyInput);
         res.status(201).json({
             message: "Success"
         });
