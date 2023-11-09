@@ -23,6 +23,7 @@ class UserController {
         res.status(201).json({
             message: "Success"
         });
+        s();
     });
 
     login = catchAsync(async (req, res) => {
