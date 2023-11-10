@@ -3,6 +3,10 @@ datasource db {
     url      = env("DB_URL")
 }
 
+generator client {
+    provider = "prisma-client-js"
+}
+
 enum AccountStatus {
     ACTIVE
     INACTIVE
@@ -31,11 +35,11 @@ model Company {
     id       String @id @default(auto()) @map("_id") @db.ObjectId
     name     String
     position String
-    userId   String
-    User     User[]
+
+    adminId String @unique @db.ObjectId
 }
 
-model User {
+model Admin {
     id                               String        @id @default(auto()) @map("_id") @db.ObjectId
     email                            String        @unique
     preferredFirstName               String?
@@ -49,10 +53,6 @@ model User {
     createdAt                        DateTime      @default(now())
     updatedAt                        DateTime      @updatedAt
     tasks                            Tasks[]
-    Company                          Company?      @relation(fields: [companyId], references: [id])
-    companyId                        String?       @db.ObjectId
-    project                          Project       @relation(fields: [projectId], references: [id])
-    projectId                        String        @db.ObjectId
 }
 
 model Project {
@@ -60,12 +60,20 @@ model Project {
     name        String
     description String
     status      ProjectStatus @default(ACTIVE)
-    userId      String        @db.ObjectId
-    User        User[]
+    adminId     String        @db.ObjectId
+    createdAt   DateTime      @default(now())
+    updatedAt   DateTime      @updatedAt
 }
 
-model Session {
-    id        String @id @default(auto()) @map("_id") @db.ObjectId
-    sessionId String
-    userId    String @db.ObjectId
+model TeamMember {
+    id          String        @id @default(auto()) @map("_id") @db.ObjectId
+    firstName   String
+    lastName    String
+    email       String        @unique
+    password    String?
+    status      AccountStatus @default(INACTIVE)
+    adminId     String        @db.ObjectId
+    inviteToken String?       @unique
+    createdAt   DateTime      @default(now())
+    updatedAt   DateTime      @updatedAt
 }
