@@ -1,14 +1,14 @@
-import { userService } from "../services/user.service.js";
+import { adminService } from "../services/admin.service.js";
 import { catchAsync } from "../utils/catch-async.js";
 import { CustomError } from "../utils/custom-error.js";
 
-class UserController {
+class AdminController {
     signUp = catchAsync(async (req, res) => {
         const { body } = req;
 
-        const input = {
+        const adminInput = {
             email: body.email,
-            preferredFirstName: body.preferredName,
+            preferredFirstName: body.preferredFirstName,
             firstName: body.firstName,
             lastName: body.lastName,
             password: body.password
@@ -19,11 +19,10 @@ class UserController {
             position: body.company.position
         };
 
-        await userService.signUp(userInput, companyInput);
+        await adminService.signUp(adminInput, companyInput);
         res.status(201).json({
             message: "Success"
         });
-        s();
     });
 
     login = catchAsync(async (req, res) => {
@@ -33,7 +32,7 @@ class UserController {
             password: body.password
         };
 
-        const jwt = await userService.login(input);
+        const jwt = await adminService.login(input);
         res.status(200).json({
             token: jwt
         });
@@ -47,7 +46,7 @@ class UserController {
         if (!activationToken) {
             throw new CustomError("Activation Token is missing", 400);
         }
-        await userService.activate(activationToken);
+        await adminService.activate(activationToken);
 
         res.status(200).json({
             message: "Success"
@@ -59,7 +58,7 @@ class UserController {
             body: { email }
         } = req;
 
-        await userService.forgotPassword(email);
+        await adminService.forgotPassword(email);
         res.status(200).json({
             message: "Password reset email has been sent"
         });
@@ -91,16 +90,16 @@ class UserController {
         if (bearer !== "Bearer" || !token)
             throw new CustomError("Invalid Token", 400);
 
-        await userService.resetPassword(token, password);
+        await adminService.resetPassword(token, password);
         res.status(200).json({
             message: "Password successfully updated"
         });
     });
 
     getMe = catchAsync(async (req, res) => {
-        const { userId } = req;
+        const { adminId } = req;
 
-        const me = await userService.getMe(userId);
+        const me = await adminService.getMe(adminId);
 
         res.status(200).json({
             data: me
@@ -113,7 +112,7 @@ class UserController {
         });
     });
     createTask = catchAsync(async (req, res) => {
-        const { userId, body } = req;
+        const { adminId, body } = req;
 
         const input = {
             title: body.title,
@@ -124,7 +123,7 @@ class UserController {
         if (!input.title || !input.due)
             throw new CustomError("Title or Due date cannot be empty", 400);
 
-        const data = await userService.createTask(userId, input);
+        const data = await adminService.createTask(adminId, input);
 
         res.status(201).json({
             data
@@ -132,9 +131,9 @@ class UserController {
     });
 
     getTasks = catchAsync(async (req, res) => {
-        const { userId } = req;
+        const { adminId } = req;
 
-        const tasks = await userService.getTasks(userId);
+        const tasks = await adminService.getTasks(adminId);
 
         res.status(200).json({
             data: tasks
@@ -142,9 +141,9 @@ class UserController {
     });
 
     getTask = catchAsync(async (req, res) => {
-        const { userId, params } = req;
+        const { adminId, params } = req;
 
-        const task = await userService.getTask(userId, params.taskId);
+        const task = await adminService.getTask(adminId, params.taskId);
 
         res.status(200).json({
             data: task
@@ -152,14 +151,14 @@ class UserController {
     });
 
     deleteTask = catchAsync(async (req, res) => {
-        const { userId, params } = req;
+        const { adminId, params } = req;
 
-        await userService.deleteTask(userId, params.taskId);
+        await adminService.deleteTask(adminId, params.taskId);
         res.status(204).send();
     });
 
     updateTask = catchAsync(async (req, res) => {
-        const { userId, params, body } = req;
+        const { adminId, params, body } = req;
 
         const input = {};
         if (body.status) {
@@ -176,9 +175,9 @@ class UserController {
             throw new CustomError("Update data not provided", 400);
         }
 
-        await userService.updateTask(userId, params.taskId, input);
+        await adminService.updateTask(adminId, params.taskId, input);
         res.status(204).send();
     });
 }
 
-export const userController = new UserController();
+export const adminController = new AdminController();
