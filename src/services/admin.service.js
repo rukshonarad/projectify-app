@@ -11,7 +11,7 @@ class AdminService {
         const hashedPassword = await bcrypt.hash(adminInput.password);
         const activationToken = crypto.createToken();
         const hashedActivationToken = crypto.hash(activationToken);
-        await prisma.admin.create({
+        const admin = await prisma.admin.create({
             data: {
                 ...adminInput,
                 password: hashedPassword,
