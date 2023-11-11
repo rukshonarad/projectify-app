@@ -12,7 +12,7 @@
     "author": "Rukhshona",
     "license": "ISC",
     "dependencies": {
-        "@prisma/client": "^5.4.2",
+        "@prisma/client": "^5.5.2",
         "@types/cookie-signature": "^1.1.1",
         "@types/jsonwebtoken": "^9.0.4",
         "bcryptjs": "^2.4.3",
@@ -26,10 +26,10 @@
         "uuid": "^9.0.1"
     },
     "devDependencies": {
-        "prisma": "^5.4.2"
+        "prisma": "^5.5.2"
     },
     "type": "module",
     "engines": {
-        "node": "18.17.0"
+        "node": "21.1.0"
     }
 }

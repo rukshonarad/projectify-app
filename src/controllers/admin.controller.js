@@ -21,7 +21,7 @@ class AdminController {
 
         await adminService.signUp(adminInput, companyInput);
         res.status(201).json({
-            message: "Success"
+            massage: "Success"
         });
     });
 

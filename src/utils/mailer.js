@@ -7,7 +7,7 @@ class Mailer {
             port: 587,
             secure: false,
             auth: {
-                admin: process.env.MAILER_ADDRESS,
+                user: process.env.MAILER_ADDRESS,
                 pass: process.env.MAILER_PASS
             }
         });
@@ -25,7 +25,7 @@ class Mailer {
             this.send({
                 to: emailAddress,
                 subject: "Projectify App | Activate Your Account",
-                html: `<a style="color: red;" href="http://localhost:3000/admin/activate?activationToken=${token}">Verify your email</a>`
+                html: `<a style="color: red;" href="http://localhost:3000/admins/activate?activationToken=${token}">Verify your email</a>`
             });
         } catch (error) {
             throw error;
@@ -37,7 +37,7 @@ class Mailer {
             this.send({
                 to: emailAddress,
                 subject: "Projectify App | Reset Password",
-                html: `<a href="http://localhost:4000/reset-password/passwordResetToken=${token}">Reset Your Password</a>`
+                html: `<a href="http://localhost:3 000/reset-password/passwordResetToken=${token}">Reset Your Password</a>`
             });
         } catch (error) {
             throw error;
