@@ -21,7 +21,6 @@ class TeamMemberService {
             inviteToken
         );
     };
-
     createPassword = async (inviteToken, password, email) => {
         const hashedInviteToken = crypto.hash(inviteToken);
         const hashedPassword = await bcrypt.hash(password);
@@ -50,4 +49,5 @@ class TeamMemberService {
         });
     };
 }
+
 export const teamMemberService = new TeamMemberService();
