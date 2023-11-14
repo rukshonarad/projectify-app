@@ -61,6 +61,32 @@ class TeamMemberController {
             message: "You successfully created a password. Now, you can log in"
         });
     });
+    getAll = catchAsync(async (req, res) => {
+        const { adminId } = req;
+        const teamMembers = await teamMemberService.getAll(adminId);
+
+        res.status(200).json({
+            data: teamMembers
+        });
+    });
+
+    deactivate = catchAsync(async (req, res) => {
+        const { adminId, body } = req;
+        await teamMemberService.changeStatus(adminId, body.teamMemberId);
+
+        res.status(204).send();
+    });
+
+    reactivate = catchAsync(async (req, res) => {
+        const { adminId, body } = req;
+        await teamMemberService.changeStatus(
+            adminId,
+            body.teamMemberId,
+            "ACTIVE"
+        );
+
+        res.status(204).send();
+    });
 }
 
 export const teamMemberController = new TeamMemberController();
