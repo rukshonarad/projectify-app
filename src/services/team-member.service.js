@@ -8,6 +8,7 @@ class TeamMemberService {
     create = async (adminId, input) => {
         const inviteToken = crypto.createToken();
         const hashedInviteToken = crypto.hash(inviteToken);
+
         await prisma.teamMember.create({
             data: {
                 ...input,
