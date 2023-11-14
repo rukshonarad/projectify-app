@@ -8,7 +8,7 @@ class AdminController {
 
         const adminInput = {
             email: body.email,
-            preferredFirstName: body.preferredFirstName,
+            preferredFirstName: body.preferredName,
             firstName: body.firstName,
             lastName: body.lastName,
             password: body.password
@@ -21,7 +21,7 @@ class AdminController {
 
         await adminService.signUp(adminInput, companyInput);
         res.status(201).json({
-            massage: "Success"
+            message: "Success"
         });
     });
 

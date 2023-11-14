@@ -8,7 +8,6 @@ class TeamMemberService {
     create = async (adminId, input) => {
         const inviteToken = crypto.createToken();
         const hashedInviteToken = crypto.hash(inviteToken);
-
         await prisma.teamMember.create({
             data: {
                 ...input,
@@ -27,17 +26,17 @@ class TeamMemberService {
         const hashedInviteToken = crypto.hash(inviteToken);
         const hashedPassword = await bcrypt.hash(password);
 
-        const admin = await prisma.teamMember.findMany({
+        const teamMember = await prisma.teamMember.findMany({
             where: {
                 inviteToken: hashedInviteToken
             }
         });
 
-        if (!admin) {
+        if (!teamMember) {
             throw new CustomError("Invalid Token", 400);
         }
 
-        await prisma.teamMember.update({
+        await prisma.teamMember.updateMany({
             where: {
                 inviteToken: hashedInviteToken
             },

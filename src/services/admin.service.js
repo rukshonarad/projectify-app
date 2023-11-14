@@ -21,9 +21,10 @@ class AdminService {
                 id: true
             }
         });
+
         await prisma.company.create({
             data: {
-                companyInput,
+                ...companyInput,
                 adminId: admin.id
             }
         });
@@ -85,7 +86,6 @@ class AdminService {
 
         return token;
     };
-
     activate = async (token) => {
         const hashedActivationToken = crypto.hash(token);
         const admin = await prisma.admin.findFirst({
