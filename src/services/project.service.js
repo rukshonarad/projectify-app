@@ -1,5 +1,6 @@
 import { prisma } from "../prisma/index.js";
 import { CustomError } from "../utils/custom-error.js";
+import { teamMemberService } from "./team-member.service.js";
 
 class ProjectService {
     create = async (input, adminId) => {

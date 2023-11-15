@@ -29,4 +29,5 @@ teamMemberRouter.patch(
     authMiddleware.authenticate,
     teamMemberController.reactivate
 );
+
 export { teamMemberRouter };
