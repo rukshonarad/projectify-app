@@ -18,8 +18,9 @@ class StoryController {
             assigneeId,
             projectId
         };
+
         const story = await storyService.create(input, adminId);
-        res.status(201).json({ data: story });
+        res.status(200).json({ data: story });
     });
 }
 export const storyController = new StoryController();
