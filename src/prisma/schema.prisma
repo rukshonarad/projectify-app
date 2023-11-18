@@ -109,7 +109,7 @@ model Story {
 
     title       String
     description String?
-    status      StoryStatus
+    status      StoryStatus @default(TODO)
     point       Int?
     due         DateTime?
     assigneeId  String?     @db.ObjectId
