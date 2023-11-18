@@ -110,7 +110,7 @@ model Story {
     title       String
     description String?
     status      StoryStatus
-    point       Int
-    due         DateTime
-    assignee    String      @db.ObjectId
+    point       Int?
+    due         DateTime?
+    assigneeId  String?     @db.ObjectId
 }

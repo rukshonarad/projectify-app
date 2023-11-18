@@ -4,6 +4,8 @@ import { projectRouter } from "./src/routes/project.routes.js";
 import { teamMemberRouter } from "./src/routes/team-member.route.js";
 import dotenv from "dotenv";
 import { GlobalError } from "./src/middlewares/global-error.middleware.js";
+import { storyRouter } from "./src/routes/story.routes.js";
+
 dotenv.config();
 
 const app = express();
@@ -14,6 +16,7 @@ const PORT = process.env.PORT || 3000;
 app.use("/admins", adminRouter);
 app.use("/projects", projectRouter);
 app.use("/team-members", teamMemberRouter);
+app.use("/stories", storyRouter);
 app.use(GlobalError.handle);
 
 app.listen(PORT, () => {
