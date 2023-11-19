@@ -9,4 +9,10 @@ storyRouter.post(
     authMiddleware.isAdmin,
     storyController.create
 );
+storyRouter.get(
+    "/:id",
+    authMiddleware.authenticate,
+    authMiddleware.isAdmin,
+    storyController.getOne
+);
 export { storyRouter };
