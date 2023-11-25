@@ -10,22 +10,12 @@ class StoryService {
         });
         return story;
     };
-    getOne = async (id, adminId) => {
-        const story = await prisma.story.findUnique({
+    getOne = async (id) => {
+        return await prisma.story.findUnique({
             where: {
                 id: id
             }
         });
-        if (!story) {
-            throw new CustomError("Story does not exist", 400);
-        }
-        if (story.adminId !== adminId) {
-            throw new CustomError(
-                "Forbidden: This story does not belong to you!",
-                403
-            );
-        }
-        return story;
     };
 }
 export const storyService = new StoryService();
