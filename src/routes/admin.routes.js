@@ -31,6 +31,7 @@ adminRouter.get(
 adminRouter.get(
     "/me/tasks/:taskId",
     authMiddleware.authenticate,
+    authMiddleware.isAdmin,
     adminController.getTask
 );
 
