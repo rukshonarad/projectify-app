@@ -12,7 +12,7 @@ storyRouter.post(
 storyRouter.get(
     "/:id",
     authMiddleware.authenticate,
-    authMiddleware.isAdmin,
+    authMiddleware.verifyReadUpdateDeleteStoryPermissions,
     storyController.getOne
 );
 export { storyRouter };
