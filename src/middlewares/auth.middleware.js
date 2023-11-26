@@ -44,7 +44,7 @@ class AuthMiddleware {
                 params: { id }
             } = req;
 
-            const story = storyService.getOne(id);
+            const story = await storyService.getOne(id);
             const { projectId } = story;
 
             const project = await prisma.project.findUnique({
