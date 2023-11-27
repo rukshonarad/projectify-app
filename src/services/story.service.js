@@ -33,18 +33,11 @@ class StoryService {
 
         return stories;
     };
-    update = async (id, update) => {
-        const story = await prisma.story.findUnique({
-            where: {
-                id: id
-            }
-        });
-        if (!story) {
-            throw new CustomError("Story does not exist", 404);
-        }
+    update = async (id, assigneeId, update) => {
         await prisma.story.update({
             where: {
-                id: id
+                id: id,
+                assigneeId: assigneeId
             },
             data: {
                 ...update

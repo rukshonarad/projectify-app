@@ -23,9 +23,8 @@ storyRouter.get(
     storyController.getAll
 );
 storyRouter.patch(
-    "/id",
+    "/:id",
     authMiddleware.authenticate,
-    authMiddleware.verifyCreateStoryPermissions,
     authMiddleware.verifyReadUpdateDeleteStoryPermissions,
     storyController.update
 );

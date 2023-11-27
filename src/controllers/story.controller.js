@@ -35,7 +35,7 @@ class StoryController {
         });
     });
     update = catchAsync(async (req, res) => {
-        const { body, params } = req;
+        const { body, assigneeId, params } = req;
         const update = {};
 
         if (body.title) {
@@ -59,7 +59,7 @@ class StoryController {
             throw new CustomError("No update data provided", 400);
         }
 
-        await storyService.update(params.projectid, adminId, update);
+        await storyService.update(params.id, assigneeId, update);
         res.status(204).send();
     });
 }
