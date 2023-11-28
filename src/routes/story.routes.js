@@ -28,4 +28,10 @@ storyRouter.patch(
     authMiddleware.verifyReadUpdateDeleteStoryPermissions,
     storyController.update
 );
+storyRouter.patch(
+    "/:id/changeStatus",
+    authMiddleware.authenticate,
+    authMiddleware.isAdmin,
+    storyController.changeStatus
+);
 export { storyRouter };

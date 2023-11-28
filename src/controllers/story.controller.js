@@ -35,7 +35,7 @@ class StoryController {
         });
     });
     update = catchAsync(async (req, res) => {
-        const { body, assigneeId, params } = req;
+        const { body, params } = req;
         const update = {};
 
         if (body.title) {
@@ -60,6 +60,12 @@ class StoryController {
         }
 
         await storyService.update(params.id, update);
+        res.status(204).send();
+    });
+    changeStatus = catchAsync(async (req, res) => {
+        const { params, adminId } = req;
+
+        await storyService.changeStatus(params.id, adminId, "ARCHIVED");
         res.status(204).send();
     });
 }
