@@ -59,7 +59,7 @@ class StoryController {
             throw new CustomError("No update data provided", 400);
         }
 
-        await storyService.update(params.id, assigneeId, update);
+        await storyService.update(params.id, update);
         res.status(204).send();
     });
 }
