@@ -33,5 +33,6 @@ teamMemberRouter.patch(
     authMiddleware.isAdmin,
     teamMemberController.reactivate
 );
+teamMemberRouter.post("/login", teamMemberController.login);
 
 export { teamMemberRouter };
