@@ -5,12 +5,12 @@ import { teamMemberRouter } from "./src/routes/team-member.route.js";
 import dotenv from "dotenv";
 import { GlobalError } from "./src/middlewares/global-error.middleware.js";
 import { storyRouter } from "./src/routes/story.routes.js";
-
+import cors from "cors";
 dotenv.config();
 
 const app = express();
 app.use(express.json());
-
+app.use(cors());
 const PORT = process.env.PORT || 3000;
 
 app.use("/admins", adminRouter);
