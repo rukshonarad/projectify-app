@@ -118,91 +118,7 @@ class TeamMemberService {
             );
         }
     };
-    // login = async (email, password) => {
-    //     const teamMember = await prisma.teamMember.findUnique({
-    //         where: {
-    //             email: email
-    //         },
-    //         select: {
-    //             id: true,
-    //             status: true,
-    //             password: true,
-    //             adminId: true
-    //         }
-    //     });
 
-    //     if (!teamMember) throw new CustomError("User does not exist", 404);
-
-    //     if (teamMember.status === "INACTIVE" && !teamMember.password) {
-    //         const inviteToken = crypto.createToken();
-    //         const hashedInviteToken = crypto.hash(inviteToken);
-
-    //         await prisma.teamMember.update({
-    //             where: {
-    //                 email
-    //             },
-    //             data: {
-    //                 inviteToken: hashedInviteToken
-    //             }
-    //         });
-    //         await mailer.sendCreatePasswordInviteToTeamMember(
-    //             email,
-    //             inviteToken
-    //         );
-
-    //         throw new CustomError(
-    //             "You did not set up the account password yet. We just emailed an instruction.",
-    //             400
-    //         );
-    //     }
-
-    //     if (teamMember.status === "INACTIVE" && teamMember.password) {
-    //         throw new CustomError(
-    //             "Your account has INACTIVE Status, can not log in",
-    //             401
-    //         );
-    //     }
-
-    //     const isPasswordMatches = await bcrypt.compare(
-    //         password,
-    //         teamMember.password
-    //     );
-
-    //     if (!isPasswordMatches) {
-    //         throw new CustomError("Invalid Credentials", 401);
-    //     }
-
-    //     const projects = await prisma.teamMemberProject.findMany({
-    //         where: {
-    //             teamMemberId: teamMember.id,
-    //             status: "ACTIVE"
-    //         },
-    //         select: {
-    //             projectId: true
-    //         }
-    //     });
-
-    //     const projectIds = projects.map((project) => project.projectId);
-
-    //     const token = jwt.sign(
-    //         {
-    //             teamMember: {
-    //                 id: teamMember.id,
-    //                 adminId: teamMember.adminId,
-    //                 projects: projectIds
-    //             }
-    //         },
-    //         process.env.JWT_SECRET,
-    //         {
-    //             expiresIn: "2 days"
-    //         }
-    //     );
-    //     const teamMemberWithoutPassword = {
-    //         firstName: teamMember.firstName,
-    //         lastName: teamMember.lastName
-    //     };
-    //     return { token, projectIds, me: teamMemberWithoutPassword };
-    // };
     login = async (email, password) => {
         const teamMember = await prisma.teamMember.findUnique({
             where: {
@@ -273,6 +189,84 @@ class TeamMemberService {
             }
         );
         return token;
+    };
+
+    forgotPassword = async (email) => {
+        const teamMember = await prisma.teamMember.findFirst({
+            where: {
+                email
+            },
+            select: {
+                id: true
+            }
+        });
+
+        if (!teamMember) {
+            throw new CustomError(
+                "Team member does not exist with provided email",
+                404
+            );
+        }
+
+        const passwordResetToken = crypto.createToken();
+        const hashedPasswordResetToken = crypto.hash(passwordResetToken);
+
+        await prisma.teamMember.update({
+            where: {
+                id: teamMember.id
+            },
+            data: {
+                passwordResetToken: hashedPasswordResetToken,
+                passwordResetTokenExpirationDate: date.addMinutes(10)
+            }
+        });
+
+        await mailer.sendPasswordResetToken(email, passwordResetToken);
+    };
+
+    resetPassword = async (token, password) => {
+        const hashedPasswordResetToken = crypto.hash(token);
+        const teamMember = await prisma.teamMember.findFirst({
+            where: {
+                passwordResetToken: hashedPasswordResetToken
+            },
+            select: {
+                id: true,
+                passwordResetToken: true,
+                passwordResetTokenExpirationDate: true
+            }
+        });
+
+        if (!teamMember) {
+            throw new CustomError(
+                "Team member does not exist with  provided Password Reset Token",
+                404
+            );
+        }
+
+        const currentTime = new Date();
+        const tokenExpDate = new Date(
+            teamMember.passwordResetTokenExpirationDate
+        );
+
+        if (tokenExpDate < currentTime) {
+            // Token Expired;
+            throw new CustomError(
+                "Password Reset Token Expired: Request a new one",
+                400
+            );
+        }
+
+        await prisma.teamMember.update({
+            where: {
+                id: teamMember.id
+            },
+            data: {
+                password: await bcrypt.hash(password),
+                passwordResetToken: null,
+                passwordResetTokenExpirationDate: null
+            }
+        });
     };
 }
 

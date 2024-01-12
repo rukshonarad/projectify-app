@@ -60,6 +60,7 @@ class Mailer {
             throw error;
         }
     };
+
     sendCreatePasswordInviteToTeamMember = async (emailAddress, token) => {
         try {
             await this.send({

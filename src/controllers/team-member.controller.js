@@ -61,6 +61,51 @@ class TeamMemberController {
             message: "You successfully created a password. Now, you can log in"
         });
     });
+    forgotPassword = catchAsync(async (req, res) => {
+        const {
+            body: { email }
+        } = req;
+
+        await adminService.forgotPassword(email);
+
+        res.status(200).json({
+            message:
+                "We emailed you an instruction to reset your password. Follow it!"
+        });
+    });
+
+    resetPassword = catchAsync(async (req, res) => {
+        const {
+            body: { password, passwordConfirm },
+            headers
+        } = req;
+        if (!password || !passwordConfirm) {
+            throw new CustomError(
+                "Both Password and Pasword Confirmation are required",
+                400
+            );
+        }
+
+        if (password !== passwordConfirm) {
+            throw new CustomError(
+                "Password and Password Confirmation does not match",
+                400
+            );
+        }
+        if (!headers.authorization) {
+            throw new CustomError("Password Reset Token is missing", 400);
+        }
+
+        const [bearer, token] = headers.authorization.split(" ");
+        if (bearer !== "Bearer" || !token) {
+            throw new CustomError("Invalid Password Reset Token", 400);
+        }
+
+        await adminService.resetPassword(token, password);
+        res.status(200).json({
+            message: "Password successfully updated"
+        });
+    });
 
     getAll = catchAsync(async (req, res) => {
         const { adminId } = req;
