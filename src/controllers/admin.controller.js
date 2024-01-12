@@ -1,7 +1,6 @@
 import { adminService } from "../services/admin.service.js";
 import { catchAsync } from "../utils/catch-async.js";
 import { CustomError } from "../utils/custom-error.js";
-
 class AdminController {
     signUp = catchAsync(async (req, res) => {
         const { body } = req;
@@ -14,14 +13,17 @@ class AdminController {
             password: body.password
         };
 
-        const companyInput = {
-            name: body.company.name,
-            position: body.company.position
-        };
+        const companyInput = {};
+
+        if (body.company) {
+            companyInput.name = body.company.name;
+            companyInput.position = body.company.name;
+        }
 
         await adminService.signUp(adminInput, companyInput);
         res.status(201).json({
-            message: "Success"
+            message:
+                "We have just sent you an email. Please,  Activate your account."
         });
     });
 
@@ -62,7 +64,8 @@ class AdminController {
         await adminService.forgotPassword(email);
 
         res.status(200).json({
-            message: "Password reset email has been sent"
+            message:
+                "We emailed you an instruction to reset your password. Follow it!"
         });
     });
 
@@ -131,6 +134,13 @@ class AdminController {
 
     getTasks = catchAsync(async (req, res) => {
         const { adminId } = req;
+
+        if (!adminId) {
+            throw new CustomError(
+                "Forbidden: You are not authorized to perform this action",
+                403
+            );
+        }
 
         const tasks = await adminService.getTasks(adminId);
 
