@@ -26,6 +26,7 @@ class TeamMemberController {
         }
 
         await teamMemberService.create(adminId, input);
+
         res.status(201).send({
             data: `Team member with ${input.email} has been created`
         });
@@ -59,6 +60,54 @@ class TeamMemberController {
 
         res.status(200).json({
             message: "You successfully created a password. Now, you can log in"
+        });
+    });
+
+    forgotPassword = catchAsync(async (req, res) => {
+        const {
+            body: { email }
+        } = req;
+
+        await teamMemberService.forgotPassword(email);
+
+        res.status(200).json({
+            message:
+                "We emailed you instructions on how to reset your password. Please, follow it!"
+        });
+    });
+
+    resetPassword = catchAsync(async (req, res) => {
+        const {
+            body: { password, passwordConfirm },
+            headers
+        } = req;
+
+        if (!password || !passwordConfirm) {
+            throw new CustomError(
+                "Both Password and Password Confirmation are required",
+                400
+            );
+        }
+
+        if (password !== passwordConfirm) {
+            throw new CustomError(
+                "Password and Password Confirmation does not match",
+                400
+            );
+        }
+        if (!headers.authorization) {
+            throw new CustomError("Password Reset Token is missing", 400);
+        }
+
+        const [bearer, token] = headers.authorization.split(" ");
+
+        if (bearer !== "Bearer" || !token) {
+            throw new CustomError("Invalid Password Reset Token", 400);
+        }
+
+        await teamMemberService.resetPassword(token, password);
+        res.status(200).json({
+            message: "Password successfully updated"
         });
     });
 
@@ -113,6 +162,16 @@ class TeamMemberController {
             token,
             projectIds,
             me
+        });
+    });
+
+    getMe = catchAsync(async (req, res) => {
+        const { teamMember } = req;
+
+        const me = await teamMemberService.getMe(teamMember);
+
+        res.status(200).json({
+            data: me
         });
     });
 }
