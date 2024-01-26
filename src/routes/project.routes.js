@@ -3,6 +3,7 @@ import { authMiddleware } from "../middlewares/auth.middleware.js";
 import { projectController } from "../controllers/project.controller.js";
 
 const projectRouter = Router();
+
 projectRouter.post(
     "/contributors/add",
     authMiddleware.authenticate,

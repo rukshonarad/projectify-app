@@ -1,29 +1,29 @@
 import { prisma } from "../prisma/index.js";
 import { projectService } from "./project.service.js";
+import { v4 as uuid } from "uuid";
 import { CustomError } from "../utils/custom-error.js";
 
 class StoryService {
-    create = async (input, adminId) => {
-        await projectService.isProjectBelongsToAdmin(input.projectId, adminId);
+    create = async (input) => {
         const story = await prisma.story.create({
             data: input
         });
+
         return story;
     };
+
     getOne = async (id) => {
         const story = await prisma.story.findUnique({
             where: {
                 id: id
             }
         });
-        if (!story) {
-            throw new CustomError("Story does not exist", 404);
-        }
 
         return story;
     };
+
     getAll = async (projectId, adminId) => {
-        await projectService.isProjectBelongsToAdmin(projectId, adminId);
+        projectService.isProjectBelongsToAdmin(projectId, adminId);
 
         const stories = await prisma.story.findMany({
             where: {
@@ -33,16 +33,8 @@ class StoryService {
 
         return stories;
     };
-    update = async (id, update) => {
-        const story = await prisma.story.findUnique({
-            where: {
-                id: id
-            }
-        });
-        if (!story) {
-            throw new CustomError("Story does not exist", 404);
-        }
 
+    update = async (id, update) => {
         await prisma.story.update({
             where: {
                 id: id
@@ -52,42 +44,100 @@ class StoryService {
             }
         });
     };
-    changeStatus = async (id, adminId, status) => {
-        const story = await prisma.story.findUnique({
+
+    deleteOne = async (id) => {
+        await prisma.story.delete({
             where: {
                 id: id
             }
         });
-        if (!story) {
-            throw new CustomError("Story does not exist", 404);
-        }
+    };
 
-        const { projectId } = story;
+    createSubTask = async (storyId, input) => {
+        const id = uuid();
 
-        await projectService.isProjectBelongsToAdmin(projectId, adminId);
+        const subTask = {
+            ...input,
+            id: id
+        };
 
-        const project = await prisma.project.findUnique({
+        await prisma.story.update({
             where: {
-                id: projectId
-            }
-        });
-
-        if (project.adminId !== adminId) {
-            throw new CustomError(
-                "Forbidden: You are not authorized to perform this action",
-                403
-            );
-        }
-
-        await prisma.story.updateMany({
-            where: {
-                id: id
+                id: storyId
             },
-
             data: {
-                status: status
+                subTasks: {
+                    push: subTask
+                }
+            }
+        });
+
+        return subTask;
+    };
+
+    getSubTask = async (story, subTaskId) => {
+        const subTask = story.subTasks.find((subTask) => {
+            return subTask.id === subTaskId;
+        });
+
+        return subTask;
+    };
+
+    getAllSubTasks = async (story) => {
+        return story.subTasks;
+    };
+
+    updateSubTask = async (story, subTaskId, input) => {
+        const subTasks = story.subTasks;
+
+        const tasksNotToUpdate = [];
+        let taskToUpdate = null;
+
+        subTasks.forEach((subTask) => {
+            if (subTask.id === subTaskId) {
+                taskToUpdate = subTask;
+            } else {
+                tasksNotToUpdate.push(subTask);
+            }
+        });
+
+        if (!taskToUpdate) {
+            throw new CustomError("SubTask does not exist", 404);
+        }
+
+        const updatedTask = {
+            ...taskToUpdate,
+            ...input
+        };
+
+        await prisma.story.update({
+            where: {
+                id: story.id
+            },
+            data: {
+                subTasks: [...tasksNotToUpdate, updatedTask]
+            }
+        });
+    };
+
+    deleteSubTask = async (story, subTaskId) => {
+        const subTasksToKeep = story.subTasks.filter(
+            (subTask) => subTask.id !== subTaskId
+        );
+
+        if (subTasksToKeep.length === story.subTasks.length) {
+            throw new CustomError("SubTask does not exist", 404);
+        }
+
+        await prisma.story.update({
+            where: {
+                id: story.id
+            },
+            data: {
+                subTasks: subTasksToKeep
             }
         });
     };
 }
+
 export const storyService = new StoryService();

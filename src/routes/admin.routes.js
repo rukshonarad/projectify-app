@@ -19,12 +19,14 @@ adminRouter.get(
 adminRouter.patch(
     "/me/tasks",
     authMiddleware.authenticate,
+    authMiddleware.isAdmin,
     adminController.createTask
 );
 
 adminRouter.get(
     "/me/tasks",
     authMiddleware.authenticate,
+    authMiddleware.isAdmin,
     adminController.getTasks
 );
 
@@ -38,12 +40,14 @@ adminRouter.get(
 adminRouter.patch(
     "/me/tasks/:taskId",
     authMiddleware.authenticate,
+    authMiddleware.isAdmin,
     adminController.updateTask
 );
 
-adminRouter.patch(
-    "/me/tasks/:taskId/delete",
+adminRouter.delete(
+    "/me/tasks/:taskId",
     authMiddleware.authenticate,
+    authMiddleware.isAdmin,
     adminController.deleteTask
 );
 

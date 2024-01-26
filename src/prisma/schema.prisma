@@ -12,10 +12,7 @@ enum AccountStatus {
     INACTIVE
 }
 
-enum ProjectStatus {
-    ACTIVE
-    ARCHIVED
-}
+// Admin Model
 
 enum TaskStatus {
     TODO
@@ -23,32 +20,12 @@ enum TaskStatus {
     DONE
 }
 
-enum StoryStatus {
-    TODO
-    INPROGRESS
-    DONE
-    ARCHIVED
-}
-
-enum TeamMemberProjectStatus {
-    ACTIVE
-    INACTIVE
-}
-
 type Tasks {
     id          String
     title       String
     description String?
     due         DateTime
-    status      TaskStatus
-}
-
-model Company {
-    id       String @id @default(auto()) @map("_id") @db.ObjectId
-    name     String
-    position String
-
-    adminId String @unique @db.ObjectId
+    status      TaskStatus @default(TODO)
 }
 
 model Admin {
@@ -62,9 +39,25 @@ model Admin {
     activationToken                  String?
     passwordResetToken               String?
     passwordResetTokenExpirationDate DateTime?
+    tasks                            Tasks[]
     createdAt                        DateTime      @default(now())
     updatedAt                        DateTime      @updatedAt
-    tasks                            Tasks[]
+}
+
+model Company {
+    id        String   @id @default(auto()) @map("_id") @db.ObjectId
+    name      String
+    position  String
+    adminId   String   @unique @db.ObjectId
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
+
+// Project Model
+
+enum ProjectStatus {
+    ACTIVE
+    ARCHIVED
 }
 
 model Project {
@@ -76,6 +69,8 @@ model Project {
     createdAt   DateTime      @default(now())
     updatedAt   DateTime      @updatedAt
 }
+
+// Team Member Model
 
 model TeamMember {
     id                               String        @id @default(auto()) @map("_id") @db.ObjectId
@@ -93,21 +88,47 @@ model TeamMember {
     updatedAt                        DateTime      @updatedAt
 }
 
+// Team Member Model
+
+enum TeamMemberProjectStatus {
+    ACTIVE
+    INACTIVE
+}
+
 model TeamMemberProject {
     id           String                  @id @default(auto()) @map("_id") @db.ObjectId
     teamMemberId String                  @db.ObjectId
     projectId    String                  @db.ObjectId
     status       TeamMemberProjectStatus @default(ACTIVE)
     joinedAt     DateTime                @default(now())
+}
 
-    // @@unique(fields: [teamMemberId, projectId]) this works only for SQL DB
+// Story Model
+
+enum StoryStatus {
+    TODO
+    INPROGRESS
+    DONE
+    ARCHIVED
+}
+
+enum SubTaskStatus {
+    TODO
+    INPROGRESS
+    DONE
+}
+
+type SubTasks {
+    id          String
+    title       String
+    description String?
+    due         DateTime
+    status      SubTaskStatus @default(TODO)
 }
 
 model Story {
-    id        String   @id @default(auto()) @map("_id") @db.ObjectId
-    projectId String   @db.ObjectId
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+    id        String @id @default(auto()) @map("_id") @db.ObjectId
+    projectId String @db.ObjectId
 
     title       String
     description String?
@@ -115,4 +136,7 @@ model Story {
     point       Int?
     due         DateTime?
     assigneeId  String?     @db.ObjectId
+    subTasks    SubTasks[]
+    createdAt   DateTime    @default(now())
+    updatedAt   DateTime    @updatedAt
 }
