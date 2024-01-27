@@ -34,21 +34,21 @@ storyRouter.patch(
     storyController.update
 );
 
-// storyRouter.delete(
-//     "/:storyId",
-//     authMiddleware.authenticate,
-//     authMiddleware.isAdmin,
-//     authMiddleware.verifyReadUpdateDeleteStoryAndSubtaskPermissions,
-//     storyController.deleteOne
-// );
+storyRouter.delete(
+    "/:storyId",
+    authMiddleware.authenticate,
+    authMiddleware.isAdmin,
+    authMiddleware.verifyReadUpdateDeleteStoryAndSubtaskPermissions,
+    storyController.deleteOne
+);
 
-// storyRouter.patch(
-//     "/:storyId/subTasks",
-//     authMiddleware.authenticate,
-//     authMiddleware.isAdmin,
-//     authMiddleware.verifyReadUpdateDeleteStoryAndSubtaskPermissions,
-//     storyController.createSubTask
-// );
+storyRouter.patch(
+    "/:storyId/subTasks",
+    authMiddleware.authenticate,
+    authMiddleware.isAdmin,
+    authMiddleware.verifyReadUpdateDeleteStoryAndSubtaskPermissions,
+    storyController.createSubTask
+);
 
 storyRouter.get(
     "/:storyId/subTasks/:subTaskId",
