@@ -37,11 +37,35 @@ teamMemberRouter.patch(
 );
 
 teamMemberRouter.post("/login", teamMemberController.login);
+
 teamMemberRouter.get(
     "/me",
     authMiddleware.authenticate,
     authMiddleware.isTeamMember,
     teamMemberController.getMe
 );
-
+teamMemberRouter.patch(
+    "/me/tasks",
+    authMiddleware.authenticate,
+    authMiddleware.isTeamMember,
+    teamMemberController.createTask
+);
+teamMemberRouter.get(
+    "/me/tasks/:taskId",
+    authMiddleware.authenticate,
+    authMiddleware.isTeamMember,
+    teamMemberController.getTask
+);
+teamMemberRouter.patch(
+    "/me/tasks/:taskId",
+    authMiddleware.authenticate,
+    authMiddleware.isTeamMember,
+    teamMemberController.updateTask
+);
+teamMemberRouter.delete(
+    "/me/tasks/:taskId",
+    authMiddleware.authenticate,
+    authMiddleware.isTeamMember,
+    teamMemberController.deleteTask
+);
 export { teamMemberRouter };
