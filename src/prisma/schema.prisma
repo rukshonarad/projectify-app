@@ -86,6 +86,7 @@ model TeamMember {
     passwordResetTokenExpirationDate DateTime?
     createdAt                        DateTime      @default(now())
     updatedAt                        DateTime      @updatedAt
+    tasks                            Tasks[]
 }
 
 // Team Member Model
