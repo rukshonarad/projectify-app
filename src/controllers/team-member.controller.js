@@ -183,6 +183,64 @@ class TeamMemberController {
             data: me
         });
     });
+    createTask = catchAsync(async (req, res) => {
+        const { teamMember, body } = req;
+
+        const input = {
+            title: body.title,
+            description: body.description,
+            due: body.due
+        };
+
+        if (!input.title || !input.due) {
+            throw new CustomError("Title or Due date cannot be empty", 400);
+        }
+
+        await teamMemberService.createTask(teamMember.id, input);
+
+        res.status(201).send({
+            message: `New Task: ${input.title} has been created`
+        });
+    });
+    getTask = catchAsync(async (req, res) => {
+        const { teamMember, params } = req;
+
+        const task = await teamMemberService.getTask(
+            teamMember.id,
+            params.taskId
+        );
+
+        res.status(200).json({
+            data: task
+        });
+    });
+    updateTask = catchAsync(async (req, res) => {
+        const { teamMember, params, body } = req;
+
+        const input = {};
+        if (body.status) {
+            input.status = body.status;
+        }
+        if (body.title) {
+            input.title = body.title;
+        }
+        if (body.description) {
+            input.description = body.description;
+        }
+
+        if (!Object.keys(input).length) {
+            throw new CustomError("Update data is required, 400");
+        }
+
+        await teamMemberService.updateTask(teamMember.id, params.taskId, input);
+        res.status(204).send();
+    });
+    deleteTask = catchAsync(async (req, res) => {
+        const { teamMember, params } = req;
+
+        await teamMemberService.deleteTask(teamMember.id, params.taskId);
+        res.status(204).send();
+    });
 }
 
 export const teamMemberController = new TeamMemberController();
