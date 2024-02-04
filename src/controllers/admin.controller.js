@@ -127,13 +127,9 @@ class AdminController {
 
         const data = await adminService.createTask(adminId, input);
 
-        // res.status(201).send({
-        //     message: `New Task with name ${input.title} has been created`
-        // });
-        res.status(200).json({
-            message: data
+        res.status(201).json({
+            data
         });
-        // res.status(201).send({ message: data });
     });
 
     getTasks = catchAsync(async (req, res) => {
