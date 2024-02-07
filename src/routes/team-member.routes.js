@@ -60,7 +60,7 @@ teamMemberRouter.get(
     "/me/tasks/",
     authMiddleware.authenticate,
     authMiddleware.isTeamMember,
-    teamMemberController.getAll
+    teamMemberController.getTasks
 );
 teamMemberRouter.patch(
     "/me/tasks/:taskId",

@@ -1,7 +1,7 @@
 import express from "express";
 import { adminRouter } from "./src/routes/admin.routes.js";
 import { projectRouter } from "./src/routes/project.routes.js";
-import { teamMemberRouter } from "./src/routes/team-member.route.js";
+import { teamMemberRouter } from "./src/routes/team-member.routes.js";
 import dotenv from "dotenv";
 import { GlobalError } from "./src/middlewares/global-error.middleware.js";
 import { storyRouter } from "./src/routes/story.routes.js";

@@ -196,10 +196,10 @@ class TeamMemberController {
             throw new CustomError("Title or Due date cannot be empty", 400);
         }
 
-        await teamMemberService.createTask(teamMember.id, input);
+        const data = await teamMemberService.createTask(teamMember.id, input);
 
-        res.status(201).send({
-            message: `New Task: ${input.title} has been created`
+        res.status(201).json({
+            data
         });
     });
     getTask = catchAsync(async (req, res) => {
@@ -214,6 +214,23 @@ class TeamMemberController {
             data: task
         });
     });
+    getTasks = catchAsync(async (req, res) => {
+        const { teamMember } = req;
+
+        if (!teamMember.id) {
+            throw new CustomError(
+                "Forbidden: You are not authorized to perform this action",
+                403
+            );
+        }
+
+        const tasks = await teamMemberService.getTasks(teamMember.id);
+
+        res.status(200).json({
+            data: tasks
+        });
+    });
+
     updateTask = catchAsync(async (req, res) => {
         const { teamMember, params, body } = req;
 
@@ -226,6 +243,9 @@ class TeamMemberController {
         }
         if (body.description) {
             input.description = body.description;
+        }
+        if (body.due) {
+            input.due = body.due;
         }
 
         if (!Object.keys(input).length) {
