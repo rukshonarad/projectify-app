@@ -10,14 +10,16 @@ class TeamMemberController {
             firstName: body.firstName,
             lastName: body.lastName,
             email: body.email,
-            position: body.position
+            position: body.position,
+            joinDate: body.joinDate
         };
 
         if (
             !input.firstName ||
             !input.lastName ||
             !input.email ||
-            !input.position
+            !input.position ||
+            !input.joinDate
         ) {
             throw new CustomError(
                 "All fields are required: First name, Last Name, Email, Position",
@@ -25,10 +27,9 @@ class TeamMemberController {
             );
         }
 
-        await teamMemberService.create(adminId, input);
-
+        const teamMember = await teamMemberService.create(adminId, input);
         res.status(201).send({
-            message: `Team member with ${input.email} has been created`
+            data: teamMember
         });
     });
 
@@ -139,7 +140,12 @@ class TeamMemberController {
 
         res.status(204).send();
     });
+    delete = catchAsync(async (req, res) => {
+        const { adminId, body } = req;
+        await teamMemberService.delete(adminId, body.teamMemberId);
 
+        res.status(204).send();
+    });
     reactivate = catchAsync(async (req, res) => {
         const { adminId, body } = req;
         await teamMemberService.changeStatus(

@@ -56,7 +56,42 @@ class TeamMemberService {
             }
         });
     };
+    delete = async (adminId, teamMemberId) => {
+        const teamMember = await prisma.teamMember.findFirst({
+            where: {
+                id: teamMemberId
+            }
+        });
 
+        if (!teamMember) {
+            throw new CustomError(
+                `Team member does not exist with following id ${teamMemberId}`,
+                404
+            );
+        }
+
+        if (teamMember.adminId !== adminId) {
+            throw new CustomError(
+                "Forbidden: You are not authorized to perform this action",
+                403
+            );
+        }
+
+        if (
+            teamMember.status === "ACTIVE" ||
+            teamMember.status === "DEACTIVATED"
+        ) {
+            throw new CustomError(
+                "Only users with INACTIVE status can be deleted!"
+            );
+        }
+
+        await prisma.teamMember.delete({
+            where: {
+                id: teamMemberId
+            }
+        });
+    };
     forgotPassword = async (email) => {
         const teamMember = await prisma.teamMember.findFirst({
             where: {
