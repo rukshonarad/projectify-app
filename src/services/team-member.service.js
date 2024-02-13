@@ -364,6 +364,25 @@ class TeamMemberService {
 
         return { ...teamMemberData, role: "teamMember" };
     };
+    getAll = async (adminId) => {
+        const teamMembers = await prisma.teamMember.findMany({
+            where: {
+                adminId: adminId
+            },
+
+            select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                email: true,
+                position: true,
+                status: true,
+                joinDate: true
+            }
+        });
+
+        return teamMembers;
+    };
     createTask = async (teamMemberId, input) => {
         const id = uuid();
         const task = {
