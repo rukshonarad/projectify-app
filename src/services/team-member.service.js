@@ -1,22 +1,31 @@
-import { CustomError } from "../utils/custom-error.js";
+import jwt from "jsonwebtoken";
 import { prisma } from "../prisma/index.js";
 import { crypto } from "../utils/crypto.js";
 import { mailer } from "../utils/mailer.js";
-import { bcrypt } from "../utils/bcrypt.js";
-import jwt from "jsonwebtoken";
 import { date } from "../utils/date.js";
+import { CustomError } from "../utils/custom-error.js";
+import { bcrypt } from "../utils/bcrypt.js";
 import { v4 as uuid } from "uuid";
+
 class TeamMemberService {
     create = async (adminId, input) => {
         const inviteToken = crypto.createToken();
         const hashedInviteToken = crypto.hash(inviteToken);
 
-        await prisma.teamMember.create({
+        const teamMember = await prisma.teamMember.create({
             data: {
                 ...input,
-                email: input.email.toLowerCase(),
                 adminId: adminId,
                 inviteToken: hashedInviteToken
+            },
+            select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                position: true,
+                joinDate: true,
+                email: true,
+                status: true
             }
         });
 
@@ -24,38 +33,10 @@ class TeamMemberService {
             input.email,
             inviteToken
         );
+
+        return teamMember;
     };
 
-    createPassword = async (inviteToken, password, email) => {
-        const hashedInviteToken = crypto.hash(inviteToken);
-        const hashedPassword = await bcrypt.hash(password);
-
-        const teamMember = await prisma.teamMember.findFirst({
-            where: {
-                inviteToken: hashedInviteToken
-            }
-        });
-
-        if (!teamMember) throw new CustomError("Invalid Token", 400);
-
-        if (teamMember.email !== email)
-            throw new CustomError(
-                "Team Member with the provided email does not exist.",
-                400
-            );
-
-        await prisma.teamMember.update({
-            where: {
-                email: email
-            },
-
-            data: {
-                password: hashedPassword,
-                status: "ACTIVE",
-                inviteToken: null
-            }
-        });
-    };
     delete = async (adminId, teamMemberId) => {
         const teamMember = await prisma.teamMember.findFirst({
             where: {
@@ -92,109 +73,53 @@ class TeamMemberService {
             }
         });
     };
-    forgotPassword = async (email) => {
+
+    createPassword = async (inviteToken, password, email) => {
+        const hashedInviteToken = crypto.hash(inviteToken);
+        const hashedPassword = await bcrypt.hash(password);
+
         const teamMember = await prisma.teamMember.findFirst({
             where: {
-                email
-            },
-            select: {
-                id: true
+                inviteToken: hashedInviteToken
             }
         });
 
         if (!teamMember) {
-            throw new CustomError(
-                "Team Member does not exist with provided email",
-                404
-            );
+            throw new CustomError("Invalid Token", 400);
         }
-
-        const passwordResetToken = crypto.createToken();
-        const hashedPasswordResetToken = crypto.hash(passwordResetToken);
 
         await prisma.teamMember.update({
             where: {
-                id: teamMember.id
+                email: email,
+                inviteToken: hashedInviteToken
             },
+
             data: {
-                passwordResetToken: hashedPasswordResetToken,
-                passwordResetTokenExpirationDate: date.addMinutes(10)
+                password: hashedPassword,
+                status: "ACTIVE",
+                inviteToken: null
             }
         });
-
-        await mailer.sendPasswordResetTokenTeamMember(
-            email,
-            passwordResetToken
-        );
     };
 
-    resetPassword = async (token, password) => {
-        const hashedPasswordResetToken = crypto.hash(token);
-        const teamMember = await prisma.teamMember.findFirst({
+    getAll = async (adminId) => {
+        const teamMembers = await prisma.teamMember.findMany({
             where: {
-                passwordResetToken: hashedPasswordResetToken
+                adminId: adminId
             },
+
             select: {
                 id: true,
-                passwordResetToken: true,
-                passwordResetTokenExpirationDate: true
-            }
-        });
-
-        if (!teamMember) {
-            throw new CustomError(
-                "Team Member does not exist with the provided Password Reset Token",
-                404
-            );
-        }
-
-        const currentTime = new Date();
-        const tokenExpDate = new Date(
-            teamMember.passwordResetTokenExpirationDate
-        );
-
-        if (tokenExpDate < currentTime) {
-            // Token Expired;
-            throw new CustomError(
-                "Password Reset Token Expired: Request a new one",
-                400
-            );
-        }
-
-        await prisma.teamMember.update({
-            where: {
-                id: teamMember.id
-            },
-            data: {
-                password: await bcrypt.hash(password),
-                passwordResetToken: null,
-                passwordResetTokenExpirationDate: null
-            }
-        });
-    };
-
-    getMe = async (id) => {
-        console.log(id);
-        const teamMember = await prisma.teamMember.findUnique({
-            where: {
-                id
-            },
-            select: {
                 firstName: true,
                 lastName: true,
+                email: true,
                 position: true,
                 status: true,
-                email: true,
-                id: true,
-                adminId: true
+                joinDate: true
             }
         });
 
-        if (!teamMember) {
-            throw new CustomError("Team member does not exist", 404);
-        }
-
-        return { ...teamMember, role: "teamMember" };
+        return teamMembers;
     };
 
     changeStatus = async (adminId, teamMemberId, status) => {
@@ -217,12 +142,6 @@ class TeamMemberService {
                 403
             );
         }
-
-        if (teamMember.status === status)
-            throw new CustomError(
-                `This Team Member already has ${status} status!`,
-                400
-            );
 
         await prisma.teamMember.update({
             where: {
@@ -264,9 +183,7 @@ class TeamMemberService {
                 id: true,
                 status: true,
                 password: true,
-                adminId: true,
-                firstName: true,
-                lastName: true
+                adminId: true
             }
         });
 
@@ -327,7 +244,8 @@ class TeamMemberService {
             {
                 teamMember: {
                     id: teamMember.id,
-                    adminId: teamMember.adminId
+                    adminId: teamMember.adminId,
+                    projects: projectIds
                 }
             },
             process.env.JWT_SECRET,
@@ -336,53 +254,113 @@ class TeamMemberService {
             }
         );
 
-        const teamMemberWithoutPassword = {
-            firstName: teamMember.firstName,
-            lastName: teamMember.lastName
-        };
-
-        return { token, projectIds, me: teamMemberWithoutPassword };
+        return token;
     };
 
-    getMe = async (teamMember) => {
-        const teamMemberData = await prisma.teamMember.findUnique({
+    forgotPassword = async (email) => {
+        const teamMember = await prisma.teamMember.findFirst({
             where: {
-                id: teamMember.id
+                email
             },
             select: {
-                firstName: true,
-                lastName: true,
-                email: true,
-                position: true,
                 id: true
             }
         });
 
-        if (!teamMember.id) {
-            throw new Error("Team Member does not exist anymore, 404");
+        if (!teamMember) {
+            throw new CustomError(
+                "Team Member does not exist with provided email",
+                404
+            );
         }
 
-        return { ...teamMemberData, role: "teamMember" };
-    };
-    getAll = async (adminId) => {
-        const teamMembers = await prisma.teamMember.findMany({
-            where: {
-                adminId: adminId
-            },
+        const passwordResetToken = crypto.createToken();
+        const hashedPasswordResetToken = crypto.hash(passwordResetToken);
 
-            select: {
-                id: true,
-                firstName: true,
-                lastName: true,
-                email: true,
-                position: true,
-                status: true,
-                joinDate: true
+        await prisma.teamMember.update({
+            where: {
+                id: teamMember.id
+            },
+            data: {
+                passwordResetToken: hashedPasswordResetToken,
+                passwordResetTokenExpirationDate: date.addMinutes(10)
             }
         });
 
-        return teamMembers;
+        await mailer.sendPasswordResetTokenTeamMember(
+            email,
+            passwordResetToken
+        );
     };
+
+    resetPassword = async (token, password) => {
+        const hashedPasswordResetToken = crypto.hash(token);
+        const teamMember = await prisma.teamMember.findFirst({
+            where: {
+                passwordResetToken: hashedPasswordResetToken
+            },
+            select: {
+                id: true,
+                passwordResetToken: true,
+                passwordResetTokenExpirationDate: true
+            }
+        });
+
+        if (!teamMember) {
+            throw new CustomError(
+                "Team-Member does not exist with provided Password Reset Token",
+                404
+            );
+        }
+
+        const currentTime = new Date();
+        const tokenExpDate = new Date(
+            teamMember.passwordResetTokenExpirationDate
+        );
+
+        if (tokenExpDate < currentTime) {
+            // Token Expired;
+            throw new CustomError(
+                "Password Reset Token Expired: Request a new one",
+                400
+            );
+        }
+
+        await prisma.teamMember.update({
+            where: {
+                id: teamMember.id
+            },
+            data: {
+                password: await bcrypt.hash(password),
+                passwordResetToken: null,
+                passwordResetTokenExpirationDate: null
+            }
+        });
+    };
+
+    getMe = async (id) => {
+        const teamMember = await prisma.teamMember.findUnique({
+            where: {
+                id
+            },
+            select: {
+                firstName: true,
+                lastName: true,
+                position: true,
+                status: true,
+                email: true,
+                id: true,
+                adminId: true
+            }
+        });
+
+        if (!teamMember) {
+            throw new CustomError("Team member does not exist", 404);
+        }
+
+        return { ...teamMember, role: "teamMember" };
+    };
+
     createTask = async (teamMemberId, input) => {
         const id = uuid();
         const task = {
@@ -404,6 +382,7 @@ class TeamMemberService {
 
         return task;
     };
+
     getTask = async (teamMemberId, taskId) => {
         const teamMember = await prisma.teamMember.findUnique({
             where: {
@@ -422,6 +401,7 @@ class TeamMemberService {
 
         return task;
     };
+
     getTasks = async (teamMemberId) => {
         const tasks = await prisma.teamMember.findUnique({
             where: {
@@ -436,35 +416,6 @@ class TeamMemberService {
         return tasks;
     };
 
-    deleteTask = async (teamMemberId, taskId) => {
-        const teamMember = await prisma.teamMember.findUnique({
-            where: {
-                id: teamMemberId
-            },
-
-            select: {
-                tasks: true
-            }
-        });
-
-        const tasksToKeep = teamMember.tasks.filter(
-            (task) => task.id !== taskId
-        );
-
-        if (tasksToKeep.length === teamMember.tasks.length) {
-            throw new CustomError("Task does not exist", 404);
-        }
-
-        await prisma.teamMember.update({
-            where: {
-                id: teamMemberId
-            },
-
-            data: {
-                tasks: tasksToKeep
-            }
-        });
-    };
     updateTask = async (teamMemberId, taskId, input) => {
         const teamMember = await prisma.teamMember.findUnique({
             where: {
@@ -506,5 +457,36 @@ class TeamMemberService {
             }
         });
     };
+
+    deleteTask = async (teamMemberId, taskId) => {
+        const teamMember = await prisma.teamMember.findUnique({
+            where: {
+                id: teamMemberId
+            },
+
+            select: {
+                tasks: true
+            }
+        });
+
+        const tasksToKeep = teamMember.tasks.filter(
+            (task) => task.id !== taskId
+        );
+
+        if (tasksToKeep.length === teamMember.tasks.length) {
+            throw new CustomError("Task does not exist", 404);
+        }
+
+        await prisma.teamMember.update({
+            where: {
+                id: teamMemberId
+            },
+
+            data: {
+                tasks: tasksToKeep
+            }
+        });
+    };
 }
+
 export const teamMemberService = new TeamMemberService();

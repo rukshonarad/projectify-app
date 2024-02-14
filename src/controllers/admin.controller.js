@@ -1,6 +1,7 @@
 import { adminService } from "../services/admin.service.js";
 import { catchAsync } from "../utils/catch-async.js";
 import { CustomError } from "../utils/custom-error.js";
+
 class AdminController {
     signUp = catchAsync(async (req, res) => {
         const { body } = req;
@@ -17,13 +18,13 @@ class AdminController {
 
         if (body.company) {
             companyInput.name = body.company.name;
-            companyInput.position = body.company.name;
+            companyInput.position = body.company.position;
         }
 
         await adminService.signUp(adminInput, companyInput);
         res.status(201).json({
             message:
-                "We have just sent you an email. Please,  Activate your account."
+                "We have just sent you an email. Please, Activate your account."
         });
     });
 
@@ -62,7 +63,6 @@ class AdminController {
         } = req;
 
         await adminService.forgotPassword(email);
-
         res.status(200).json({
             message:
                 "We emailed you an instruction to reset your password. Follow it!"
@@ -76,24 +76,23 @@ class AdminController {
         } = req;
         if (!password || !passwordConfirm) {
             throw new CustomError(
-                "Both Password and Pasword Confirmation are required",
+                "Password and Password Confirm is required",
                 400
             );
         }
 
         if (password !== passwordConfirm) {
             throw new CustomError(
-                "Password and Password Confirmation does not match",
+                "Password and Password Confirm does not match",
                 400
             );
         }
         if (!headers.authorization) {
-            throw new CustomError("Password Reset Token is missing", 400);
+            throw new CustomError("Reset Token is missing", 400);
         }
-
         const [bearer, token] = headers.authorization.split(" ");
         if (bearer !== "Bearer" || !token) {
-            throw new CustomError("Invalid Password Reset Token", 400);
+            throw new CustomError("Invalid Token", 400);
         }
 
         await adminService.resetPassword(token, password);
@@ -111,6 +110,12 @@ class AdminController {
             data: me
         });
     });
+
+    logout = async (req, res) => {
+        res.status(200).send({
+            token: ""
+        });
+    };
 
     createTask = catchAsync(async (req, res) => {
         const { adminId, body } = req;
@@ -163,6 +168,7 @@ class AdminController {
         const { adminId, params } = req;
 
         await adminService.deleteTask(adminId, params.taskId);
+
         res.status(204).send();
     });
 
@@ -184,7 +190,7 @@ class AdminController {
         }
 
         if (!Object.keys(input).length) {
-            throw new CustomError("Update data is required, 400");
+            throw new CustomError("Update data is required", 400);
         }
 
         await adminService.updateTask(adminId, params.taskId, input);

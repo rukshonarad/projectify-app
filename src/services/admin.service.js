@@ -1,7 +1,7 @@
 import { prisma } from "../prisma/index.js";
+import { bcrypt } from "../utils/bcrypt.js";
 import { crypto } from "../utils/crypto.js";
 import { mailer } from "../utils/mailer.js";
-import { bcrypt } from "../utils/bcrypt.js";
 import { date } from "../utils/date.js";
 import jwt from "jsonwebtoken";
 import { v4 as uuid } from "uuid";
@@ -32,9 +32,8 @@ class AdminService {
                 }
             });
         }
-        if (admin) {
-            await mailer.sendActivationMail(adminInput.email, activationToken);
-        }
+
+        await mailer.sendActivationMail(adminInput.email, activationToken);
     };
 
     login = async (input) => {
@@ -153,7 +152,7 @@ class AdminService {
             }
         });
 
-        await mailer.sendPasswordResetToken(email, passwordResetToken);
+        await mailer.sendPasswordResetTokenAdmin(email, passwordResetToken);
     };
 
     resetPassword = async (token, password) => {
@@ -214,7 +213,7 @@ class AdminService {
         });
 
         if (!admin) {
-            throw new Error("Admin does not exist anymore, 404");
+            throw new CustomError("Admin does not exist", 404);
         }
 
         const company = await prisma.company.findFirst({
