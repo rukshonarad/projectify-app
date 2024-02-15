@@ -102,7 +102,30 @@ class TeamMemberController {
 
         res.status(204).send();
     });
-
+    changePassword = catchAsync(async (req, res) => {
+        const { teamMember, params, body } = req;
+        const input = {};
+        if (body.password) {
+            input.password = body.password;
+        }
+        if (body.newPassword) {
+            input.newPassword = body.newPassword;
+        }
+        if (body.newPasswordConfirm) {
+            input.newPasswordConfirm = body.newPasswordConfirm;
+        }
+        if (!Object.keys(input).length) {
+            throw new CustomError("Change Password is required, 400");
+        }
+        await teamMemberService.changePassword(
+            teamMember.id,
+            params.password,
+            input
+        );
+        res.status(200).json({
+            message: "Password Changed Successfully!"
+        });
+    });
     login = catchAsync(async (req, res) => {
         const {
             body: { email, password }
@@ -123,10 +146,10 @@ class TeamMemberController {
 
     forgotPassword = catchAsync(async (req, res) => {
         const {
-            body: { email }
+            body: { password }
         } = req;
 
-        await teamMemberService.forgotPassword(email);
+        await teamMemberService.forgotPassword(password);
         res.status(200).json({
             message:
                 "We emailed you an instruction to reset your password. Follow it!"

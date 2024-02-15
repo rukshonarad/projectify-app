@@ -29,19 +29,24 @@ teamMemberRouter.patch(
     teamMemberController.deactivate
 );
 teamMemberRouter.delete(
-    "/:/delete",
+    "/:id/delete",
     authMiddleware.authenticate,
     authMiddleware.isAdmin,
     teamMemberController.delete
 );
 
 teamMemberRouter.patch(
-    "/reactivate",
+    "/:id/reactivate",
     authMiddleware.authenticate,
     authMiddleware.isAdmin,
     teamMemberController.reactivate
 );
-
+teamMemberRouter.patch(
+    "/:id/change-password",
+    authMiddleware.authenticate,
+    authMiddleware.isTeamMember,
+    teamMemberController.changePassword
+);
 teamMemberRouter.post("/login", teamMemberController.login);
 
 teamMemberRouter.get(

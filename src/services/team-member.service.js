@@ -344,6 +344,19 @@ class TeamMemberService {
             }
         });
     };
+    changePassword = async (teamMemberId, password, input) => {
+        const teamMember = await prisma.teamMember.findUnique({
+            where: {
+                id: teamMemberId
+            },
+            select: {
+                password: true
+            }
+        });
+        if (!password) {
+            throw new CustomError("Password didn't match", 404);
+        }
+    };
 
     getMe = async (id) => {
         const teamMember = await prisma.teamMember.findUnique({
