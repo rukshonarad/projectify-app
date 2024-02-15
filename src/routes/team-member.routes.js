@@ -23,13 +23,13 @@ teamMemberRouter.get(
 );
 
 teamMemberRouter.patch(
-    "/deactivate",
+    "/:id/deactivate",
     authMiddleware.authenticate,
     authMiddleware.isAdmin,
     teamMemberController.deactivate
 );
 teamMemberRouter.delete(
-    "/delete",
+    "/:/delete",
     authMiddleware.authenticate,
     authMiddleware.isAdmin,
     teamMemberController.delete
