@@ -19,7 +19,12 @@ teamMemberRouter.get(
     authMiddleware.isAdmin,
     teamMemberController.getAll
 );
-
+teamMemberRouter.patch(
+    "/:id/update",
+    authMiddleware.authenticate,
+    authMiddleware.isAdmin,
+    teamMemberController.update
+);
 teamMemberRouter.patch(
     "/:id/deactivate",
     authMiddleware.authenticate,

@@ -368,7 +368,26 @@ class TeamMemberService {
 
         return { ...teamMember, role: "teamMember" };
     };
+    update = async (adminId, teamMemberId, input) => {
+        const teamMember = await prisma.teamMember.findUnique({
+            where: {
+                id: teamMemberId,
+                adminId: adminId
+            }
+        });
 
+        if (!teamMember) {
+            throw new CustomError("Team Member does not exist", 404);
+        }
+
+        await prisma.teamMember.update({
+            where: {
+                id: teamMemberId
+            },
+
+            data: input
+        });
+    };
     changePassword = async (teamMemberId, input) => {
         const { password, newPassword } = input;
 
