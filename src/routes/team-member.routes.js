@@ -12,8 +12,6 @@ teamMemberRouter.post(
 );
 
 teamMemberRouter.patch("/create-password", teamMemberController.createPassword);
-teamMemberRouter.patch("/forgot-password", teamMemberController.forgotPassword);
-teamMemberRouter.patch("/reset-password", teamMemberController.resetPassword);
 
 teamMemberRouter.get(
     "/",
@@ -28,12 +26,6 @@ teamMemberRouter.patch(
     authMiddleware.isAdmin,
     teamMemberController.deactivate
 );
-teamMemberRouter.delete(
-    "/:id/delete",
-    authMiddleware.authenticate,
-    authMiddleware.isAdmin,
-    teamMemberController.delete
-);
 
 teamMemberRouter.patch(
     "/:id/reactivate",
@@ -41,20 +33,30 @@ teamMemberRouter.patch(
     authMiddleware.isAdmin,
     teamMemberController.reactivate
 );
-teamMemberRouter.patch(
-    "/:id/change-password",
+
+teamMemberRouter.delete(
+    "/:id/delete",
     authMiddleware.authenticate,
-    authMiddleware.isTeamMember,
-    teamMemberController.changePassword
+    authMiddleware.isAdmin,
+    teamMemberController.delete
 );
 teamMemberRouter.post("/login", teamMemberController.login);
-
+teamMemberRouter.patch("/forgot-password", teamMemberController.forgotPassword);
+teamMemberRouter.patch("/reset-password", teamMemberController.resetPassword);
 teamMemberRouter.get(
     "/me",
     authMiddleware.authenticate,
     authMiddleware.isTeamMember,
     teamMemberController.getMe
 );
+
+teamMemberRouter.patch(
+    "/me/change-password",
+    authMiddleware.authenticate,
+    authMiddleware.isTeamMember,
+    teamMemberController.changePassword
+);
+
 teamMemberRouter.patch(
     "/me/tasks",
     authMiddleware.authenticate,
@@ -68,7 +70,7 @@ teamMemberRouter.get(
     teamMemberController.getTask
 );
 teamMemberRouter.get(
-    "/me/tasks/",
+    "/me/tasks",
     authMiddleware.authenticate,
     authMiddleware.isTeamMember,
     teamMemberController.getTasks
@@ -85,4 +87,5 @@ teamMemberRouter.patch(
     authMiddleware.isTeamMember,
     teamMemberController.deleteTask
 );
+
 export { teamMemberRouter };

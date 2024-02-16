@@ -35,8 +35,8 @@ class TeamMemberController {
 
     delete = catchAsync(async (req, res) => {
         const { adminId, params } = req;
-        console.log(params);
         await teamMemberService.delete(adminId, params.id);
+
         res.status(204).send();
     });
 
@@ -52,10 +52,6 @@ class TeamMemberController {
         const [prefix, token] = headers.authorization.split(" ");
 
         if (!prefix || !token) {
-            throw new CustomError("Not Valid Token", 400);
-        }
-
-        if (!token) {
             throw new CustomError("Token was not sent in correct form", 400);
         }
 
@@ -102,30 +98,7 @@ class TeamMemberController {
 
         res.status(204).send();
     });
-    changePassword = catchAsync(async (req, res) => {
-        const { teamMember, params, body } = req;
-        const input = {};
-        if (body.password) {
-            input.password = body.password;
-        }
-        if (body.newPassword) {
-            input.newPassword = body.newPassword;
-        }
-        if (body.newPasswordConfirm) {
-            input.newPasswordConfirm = body.newPasswordConfirm;
-        }
-        if (!Object.keys(input).length) {
-            throw new CustomError("Change Password is required, 400");
-        }
-        await teamMemberService.changePassword(
-            teamMember.id,
-            params.password,
-            input
-        );
-        res.status(200).json({
-            message: "Password Changed Successfully!"
-        });
-    });
+
     login = catchAsync(async (req, res) => {
         const {
             body: { email, password }
@@ -146,10 +119,10 @@ class TeamMemberController {
 
     forgotPassword = catchAsync(async (req, res) => {
         const {
-            body: { password }
+            body: { email }
         } = req;
 
-        await teamMemberService.forgotPassword(password);
+        await teamMemberService.forgotPassword(email);
         res.status(200).json({
             message:
                 "We emailed you an instruction to reset your password. Follow it!"
@@ -194,6 +167,45 @@ class TeamMemberController {
 
         res.status(200).json({
             data: me
+        });
+    });
+
+    changePassword = catchAsync(async (req, res) => {
+        const { teamMember, body } = req;
+
+        const input = {
+            password: body.password,
+            newPassword: body.newPassword,
+            newPasswordConfirm: body.newPasswordConfirm
+        };
+
+        if (
+            !input.password ||
+            !input.newPassword ||
+            !input.newPasswordConfirm
+        ) {
+            "All fields are required: Current Password and New Password, New Password Confirmation",
+                400;
+        }
+
+        if (input.password === input.newPassword) {
+            throw new CustomError(
+                "Provide Valid New Password which does not match Current Password ",
+                400
+            );
+        }
+
+        if (input.newPassword !== input.newPasswordConfirm) {
+            throw new CustomError(
+                "New Password and New Password Confirmation must match",
+                400
+            );
+        }
+
+        await teamMemberService.changePassword(teamMember.id, input);
+
+        res.status(200).json({
+            message: "You successfully updated your password!"
         });
     });
 

@@ -38,13 +38,12 @@ class TeamMemberService {
     };
 
     delete = async (adminId, teamMemberId) => {
-        console.log(adminId, teamMemberId);
         const teamMember = await prisma.teamMember.findUnique({
             where: {
                 id: teamMemberId
             }
         });
-        console.log(teamMember);
+
         if (!teamMember) {
             throw new CustomError(
                 `Team member does not exist with following id ${teamMemberId}`,
@@ -144,12 +143,14 @@ class TeamMemberService {
                 403
             );
         }
+
         if (teamMember.status === "INACTIVE") {
             throw new CustomError(
                 "Status Change is now allowed. Users with INACTIVE status can be deleted only!",
                 403
             );
         }
+
         await prisma.teamMember.update({
             where: {
                 id: teamMemberId,
@@ -344,19 +345,6 @@ class TeamMemberService {
             }
         });
     };
-    changePassword = async (teamMemberId, password, input) => {
-        const teamMember = await prisma.teamMember.findUnique({
-            where: {
-                id: teamMemberId
-            },
-            select: {
-                password: true
-            }
-        });
-        if (!password) {
-            throw new CustomError("Password didn't match", 404);
-        }
-    };
 
     getMe = async (id) => {
         const teamMember = await prisma.teamMember.findUnique({
@@ -381,6 +369,41 @@ class TeamMemberService {
         return { ...teamMember, role: "teamMember" };
     };
 
+    changePassword = async (teamMemberId, input) => {
+        const { password, newPassword } = input;
+
+        const teamMember = await prisma.teamMember.findUnique({
+            where: {
+                id: teamMemberId
+            },
+            select: {
+                password: true
+            }
+        });
+
+        if (!teamMember) {
+            throw new CustomError("Team member not found", 404);
+        }
+
+        const passwordMatch = await bcrypt.compare(
+            password,
+            teamMember.password
+        );
+
+        if (!passwordMatch) {
+            throw new CustomError("Invalid Credentials", 400);
+        }
+
+        const hashedPassword = await bcrypt.hash(newPassword);
+        await prisma.teamMember.update({
+            where: {
+                id: teamMemberId
+            },
+            data: {
+                password: hashedPassword
+            }
+        });
+    };
     createTask = async (teamMemberId, input) => {
         const id = uuid();
         const task = {
