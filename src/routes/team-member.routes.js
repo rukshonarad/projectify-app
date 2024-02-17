@@ -12,6 +12,8 @@ teamMemberRouter.post(
 );
 
 teamMemberRouter.patch("/create-password", teamMemberController.createPassword);
+teamMemberRouter.patch("/forgot-password", teamMemberController.forgotPassword);
+teamMemberRouter.patch("/reset-password", teamMemberController.resetPassword);
 
 teamMemberRouter.get(
     "/",
@@ -19,12 +21,7 @@ teamMemberRouter.get(
     authMiddleware.isAdmin,
     teamMemberController.getAll
 );
-teamMemberRouter.patch(
-    "/:id/update",
-    authMiddleware.authenticate,
-    authMiddleware.isAdmin,
-    teamMemberController.update
-);
+
 teamMemberRouter.patch(
     "/:id/deactivate",
     authMiddleware.authenticate,
@@ -38,16 +35,20 @@ teamMemberRouter.patch(
     authMiddleware.isAdmin,
     teamMemberController.reactivate
 );
-
 teamMemberRouter.delete(
     "/:id/delete",
     authMiddleware.authenticate,
     authMiddleware.isAdmin,
     teamMemberController.delete
 );
+teamMemberRouter.patch(
+    "/:id",
+    authMiddleware.authenticate,
+    authMiddleware.isAdmin,
+    teamMemberController.update
+);
+
 teamMemberRouter.post("/login", teamMemberController.login);
-teamMemberRouter.patch("/forgot-password", teamMemberController.forgotPassword);
-teamMemberRouter.patch("/reset-password", teamMemberController.resetPassword);
 teamMemberRouter.get(
     "/me",
     authMiddleware.authenticate,
@@ -56,38 +57,35 @@ teamMemberRouter.get(
 );
 
 teamMemberRouter.patch(
-    "/me/change-password",
-    authMiddleware.authenticate,
-    authMiddleware.isTeamMember,
-    teamMemberController.changePassword
-);
-
-teamMemberRouter.patch(
     "/me/tasks",
     authMiddleware.authenticate,
     authMiddleware.isTeamMember,
     teamMemberController.createTask
 );
-teamMemberRouter.get(
-    "/me/tasks/:taskId",
-    authMiddleware.authenticate,
-    authMiddleware.isTeamMember,
-    teamMemberController.getTask
-);
+
 teamMemberRouter.get(
     "/me/tasks",
     authMiddleware.authenticate,
     authMiddleware.isTeamMember,
     teamMemberController.getTasks
 );
+
+teamMemberRouter.get(
+    "/me/tasks/:taskId",
+    authMiddleware.authenticate,
+    authMiddleware.isTeamMember,
+    teamMemberController.getTask
+);
+
 teamMemberRouter.patch(
     "/me/tasks/:taskId",
     authMiddleware.authenticate,
     authMiddleware.isTeamMember,
     teamMemberController.updateTask
 );
-teamMemberRouter.patch(
-    "/me/tasks/:taskId/delete",
+
+teamMemberRouter.delete(
+    "/me/tasks/:taskId",
     authMiddleware.authenticate,
     authMiddleware.isTeamMember,
     teamMemberController.deleteTask

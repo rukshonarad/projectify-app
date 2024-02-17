@@ -28,16 +28,10 @@ class TeamMemberController {
         }
 
         const teamMember = await teamMemberService.create(adminId, input);
+
         res.status(201).send({
             data: teamMember
         });
-    });
-
-    delete = catchAsync(async (req, res) => {
-        const { adminId, params } = req;
-        await teamMemberService.delete(adminId, params.id);
-
-        res.status(204).send();
     });
 
     createPassword = catchAsync(async (req, res) => {
@@ -47,12 +41,16 @@ class TeamMemberController {
         } = req;
 
         if (!headers.authorization) {
-            throw new CustomError("Invite Token is missing", 401);
+            throw new CustomError("You are not logged in. Please, log in", 401);
         }
         const [prefix, token] = headers.authorization.split(" ");
 
         if (!prefix || !token) {
-            throw new CustomError("Token was not sent in correct form", 400);
+            throw new CustomError("Not Valid Token", 400);
+        }
+
+        if (!token) {
+            throw new CustomError("Invite Token is missing", 400);
         }
 
         if (!password || !passwordConfirm || !email) {
@@ -76,6 +74,54 @@ class TeamMemberController {
         });
     });
 
+    forgotPassword = catchAsync(async (req, res) => {
+        const {
+            body: { email }
+        } = req;
+
+        await teamMemberService.forgotPassword(email);
+
+        res.status(200).json({
+            message:
+                "We emailed you instructions on how to reset your password. Please, follow it!"
+        });
+    });
+
+    resetPassword = catchAsync(async (req, res) => {
+        const {
+            body: { password, passwordConfirm },
+            headers
+        } = req;
+
+        if (!password || !passwordConfirm) {
+            throw new CustomError(
+                "Both Password and Password Confirmation are required",
+                400
+            );
+        }
+
+        if (password !== passwordConfirm) {
+            throw new CustomError(
+                "Password and Password Confirmation does not match",
+                400
+            );
+        }
+        if (!headers.authorization) {
+            throw new CustomError("Password Reset Token is missing", 400);
+        }
+
+        const [bearer, token] = headers.authorization.split(" ");
+
+        if (bearer !== "Bearer" || !token) {
+            throw new CustomError("Invalid Password Reset Token", 400);
+        }
+
+        await teamMemberService.resetPassword(token, password);
+        res.status(200).json({
+            message: "Password successfully updated"
+        });
+    });
+
     getAll = catchAsync(async (req, res) => {
         const { adminId } = req;
         const teamMembers = await teamMemberService.getAll(adminId);
@@ -84,6 +130,28 @@ class TeamMemberController {
             data: teamMembers
         });
     });
+
+    deactivate = catchAsync(async (req, res) => {
+        const { adminId, params } = req;
+        await teamMemberService.changeStatus(adminId, params.id, "DEACTIVATED");
+
+        res.status(204).send();
+    });
+
+    delete = catchAsync(async (req, res) => {
+        const { adminId, params } = req;
+        await teamMemberService.delete(adminId, params.id);
+
+        res.status(204).send();
+    });
+
+    reactivate = catchAsync(async (req, res) => {
+        const { adminId, params } = req;
+        await teamMemberService.changeStatus(adminId, params.id, "ACTIVE");
+
+        res.status(204).send();
+    });
+
     update = catchAsync(async (req, res) => {
         const { adminId, params, body } = req;
 
@@ -112,19 +180,6 @@ class TeamMemberController {
         await teamMemberService.update(adminId, params.id, input);
         res.status(204).send();
     });
-    deactivate = catchAsync(async (req, res) => {
-        const { adminId, params } = req;
-        await teamMemberService.changeStatus(adminId, params.id, "DEACTIVATED");
-
-        res.status(204).send();
-    });
-
-    reactivate = catchAsync(async (req, res) => {
-        const { adminId, params } = req;
-        await teamMemberService.changeStatus(adminId, params.id, "ACTIVE");
-
-        res.status(204).send();
-    });
 
     login = catchAsync(async (req, res) => {
         const {
@@ -138,106 +193,34 @@ class TeamMemberController {
             );
         }
 
-        const jwt = await teamMemberService.login(email, password);
+        const { token, projectIds, me } = await teamMemberService.login(
+            email,
+            password
+        );
         res.status(200).json({
-            token: jwt
-        });
-    });
-
-    forgotPassword = catchAsync(async (req, res) => {
-        const {
-            body: { email }
-        } = req;
-
-        await teamMemberService.forgotPassword(email);
-        res.status(200).json({
-            message:
-                "We emailed you an instruction to reset your password. Follow it!"
-        });
-    });
-
-    resetPassword = catchAsync(async (req, res) => {
-        const {
-            body: { password, passwordConfirm },
-            headers
-        } = req;
-        if (!password || !passwordConfirm) {
-            throw new CustomError(
-                "Password and Password Confirm is required",
-                400
-            );
-        }
-
-        if (password !== passwordConfirm) {
-            throw new CustomError(
-                "Password and Password Confirm does not match",
-                400
-            );
-        }
-        if (!headers.authorization) {
-            throw new CustomError("Reset Token is missing", 400);
-        }
-        const [bearer, token] = headers.authorization.split(" ");
-        if (bearer !== "Bearer" || !token) {
-            throw new CustomError("Invalid Token", 400);
-        }
-
-        await teamMemberService.resetPassword(token, password);
-        res.status(200).json({
-            message: "Password successfully updated"
+            token,
+            projectIds,
+            me
         });
     });
 
     getMe = catchAsync(async (req, res) => {
-        const { teamMember } = req;
-        const me = await teamMemberService.getMe(teamMember.id);
+        const {
+            teamMember: { id }
+        } = req;
+
+        const me = await teamMemberService.getMe(id);
 
         res.status(200).json({
             data: me
         });
     });
 
-    changePassword = catchAsync(async (req, res) => {
-        const { teamMember, body } = req;
-
-        const input = {
-            password: body.password,
-            newPassword: body.newPassword,
-            newPasswordConfirm: body.newPasswordConfirm
-        };
-
-        if (
-            !input.password ||
-            !input.newPassword ||
-            !input.newPasswordConfirm
-        ) {
-            "All fields are required: Current Password and New Password, New Password Confirmation",
-                400;
-        }
-
-        if (input.password === input.newPassword) {
-            throw new CustomError(
-                "Provide Valid New Password which does not match Current Password ",
-                400
-            );
-        }
-
-        if (input.newPassword !== input.newPasswordConfirm) {
-            throw new CustomError(
-                "New Password and New Password Confirmation must match",
-                400
-            );
-        }
-
-        await teamMemberService.changePassword(teamMember.id, input);
-
-        res.status(200).json({
-            message: "You successfully updated your password!"
-        });
-    });
-
     createTask = catchAsync(async (req, res) => {
-        const { teamMember, body } = req;
+        const {
+            teamMember: { id },
+            body
+        } = req;
 
         const input = {
             title: body.title,
@@ -246,10 +229,10 @@ class TeamMemberController {
         };
 
         if (!input.title || !input.due) {
-            throw new CustomError("Title or Due date cannot be empty", 400);
+            throw new CustomError("Both Title and Due Date are required", 404);
         }
 
-        const data = await teamMemberService.createTask(teamMember.id, input);
+        const data = await teamMemberService.createTask(id, input);
 
         res.status(201).json({
             data
@@ -257,16 +240,18 @@ class TeamMemberController {
     });
 
     getTasks = catchAsync(async (req, res) => {
-        const { teamMember } = req;
+        const {
+            teamMember: { id }
+        } = req;
 
-        if (!teamMember.id) {
+        if (!id) {
             throw new CustomError(
                 "Forbidden: You are not authorized to perform this action",
                 403
             );
         }
 
-        const tasks = await teamMemberService.getTasks(teamMember.id);
+        const tasks = await teamMemberService.getTasks(id);
 
         res.status(200).json({
             data: tasks
@@ -274,20 +259,34 @@ class TeamMemberController {
     });
 
     getTask = catchAsync(async (req, res) => {
-        const { teamMember, params } = req;
+        const {
+            teamMember: { id },
+            params
+        } = req;
 
-        const task = await teamMemberService.getTask(
-            teamMember.id,
-            params.taskId
-        );
+        const task = await teamMemberService.getTask(id, params.taskId);
 
         res.status(200).json({
             data: task
         });
     });
 
+    deleteTask = catchAsync(async (req, res) => {
+        const {
+            teamMember: { id },
+            params
+        } = req;
+
+        await teamMemberService.deleteTask(id, params.taskId);
+        res.status(204).send();
+    });
+
     updateTask = catchAsync(async (req, res) => {
-        const { teamMember, params, body } = req;
+        const {
+            teamMember: { id },
+            params,
+            body
+        } = req;
 
         const input = {};
         if (body.status) {
@@ -307,14 +306,7 @@ class TeamMemberController {
             throw new CustomError("Update data is required, 400");
         }
 
-        await teamMemberService.updateTask(teamMember.id, params.taskId, input);
-        res.status(204).send();
-    });
-
-    deleteTask = catchAsync(async (req, res) => {
-        const { teamMember, params } = req;
-
-        await teamMemberService.deleteTask(teamMember.id, params.taskId);
+        await teamMemberService.updateTask(id, params.taskId, input);
         res.status(204).send();
     });
 }
