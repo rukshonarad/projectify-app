@@ -264,6 +264,39 @@ class TeamMemberService {
 
         return { ...teamMember, role: "teamMember" };
     };
+    changePasswordByAdmin = async (adminId, teamMemberId, input) => {
+        const { newPassword } = input;
+
+        const teamMember = await prisma.teamMember.findUnique({
+            where: {
+                id: teamMemberId
+            },
+            select: {
+                adminId: true
+            }
+        });
+
+        if (!teamMember) {
+            throw new CustomError("Team member not found", 404);
+        }
+
+        if (teamMember.adminId !== adminId) {
+            throw new CustomError(
+                "Forbidden: You are not authorized to perform this action",
+                403
+            );
+        }
+
+        const hashedPassword = await bcrypt.hash(newPassword);
+        await prisma.teamMember.update({
+            where: {
+                id: teamMemberId
+            },
+            data: {
+                password: hashedPassword
+            }
+        });
+    };
 
     getAll = async (adminId) => {
         const teamMembers = await prisma.teamMember.findMany({

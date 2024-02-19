@@ -35,6 +35,13 @@ teamMemberRouter.patch(
     authMiddleware.isAdmin,
     teamMemberController.reactivate
 );
+teamMemberRouter.patch(
+    "/:id/change-password",
+    authMiddleware.authenticate,
+    authMiddleware.isAdmin,
+    teamMemberController.changePasswordByAdmin
+);
+
 teamMemberRouter.delete(
     "/:id/delete",
     authMiddleware.authenticate,

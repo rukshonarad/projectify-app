@@ -217,6 +217,36 @@ class TeamMemberController {
         await teamMemberService.update(adminId, params.id, input);
         res.status(204).send();
     });
+    changePasswordByAdmin = catchAsync(async (req, res) => {
+        const { adminId, params, body } = req;
+
+        const input = {
+            newPassword: body.newPassword,
+            newPasswordConfirm: body.newPasswordConfirm
+        };
+
+        if (!input.newPassword || !input.newPasswordConfirm) {
+            "All fields are required:New Password, New Password Confirmation",
+                400;
+        }
+
+        if (input.newPassword !== input.newPasswordConfirm) {
+            throw new CustomError(
+                "New Password and New Password Confirmation must match",
+                400
+            );
+        }
+
+        await teamMemberService.changePasswordByAdmin(
+            adminId,
+            params.id,
+            input
+        );
+
+        res.status(200).json({
+            message: "You successfully updated your Team Member password!"
+        });
+    });
 
     login = catchAsync(async (req, res) => {
         const {
