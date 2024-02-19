@@ -47,6 +47,12 @@ teamMemberRouter.patch(
     authMiddleware.isAdmin,
     teamMemberController.update
 );
+teamMemberRouter.patch(
+    "/me/change-password",
+    authMiddleware.authenticate,
+    authMiddleware.isAdmin,
+    teamMemberController.changePassword
+);
 
 teamMemberRouter.post("/login", teamMemberController.login);
 teamMemberRouter.get(
