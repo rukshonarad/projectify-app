@@ -73,20 +73,20 @@ model Project {
 // Team Member Model
 
 model TeamMember {
-    id                               String        @id @default(auto()) @map("_id") @db.ObjectId
+    id                               String                  @id @default(auto()) @map("_id") @db.ObjectId
     firstName                        String
     lastName                         String
     position                         String
-    email                            String        @unique
+    email                            String                  @unique
     password                         String?
-    status                           AccountStatus @default(INACTIVE)
-    adminId                          String        @db.ObjectId
+    status                           TeamMemberAccountStatus @default(INACTIVE)
+    adminId                          String                  @db.ObjectId
     inviteToken                      String?
     passwordResetToken               String?
     passwordResetTokenExpirationDate DateTime?
     joinDate                         DateTime
-    createdAt                        DateTime      @default(now())
-    updatedAt                        DateTime      @updatedAt
+    createdAt                        DateTime                @default(now())
+    updatedAt                        DateTime                @updatedAt
     tasks                            Tasks[]
 }
 
@@ -95,6 +95,12 @@ model TeamMember {
 enum TeamMemberProjectStatus {
     ACTIVE
     INACTIVE
+}
+
+enum TeamMemberAccountStatus {
+    ACTIVE
+    INACTIVE
+    DEACTIVATED
 }
 
 model TeamMemberProject {
