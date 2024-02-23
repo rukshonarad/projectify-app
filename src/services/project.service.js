@@ -27,7 +27,7 @@ class ProjectService {
 
         if (project.adminId !== adminId) {
             throw new CustomError(
-                "Forbidden:  You are not authorized to perform this action",
+                "Forbidden: You are not authorized to perform this action",
                 403
             );
         }
@@ -52,6 +52,7 @@ class ProjectService {
                 403
             );
         }
+
         await prisma.project.update({
             where: {
                 id: id
@@ -94,6 +95,7 @@ class ProjectService {
                 id: id,
                 adminId: adminId
             },
+
             data: {
                 status: status
             }

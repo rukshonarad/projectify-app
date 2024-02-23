@@ -7,17 +7,24 @@ class ProjectController {
         const { body, adminId } = req;
         const input = {
             name: body.name,
-            description: body.description
+            description: body.description,
+            startDate: body.startDate,
+            endDate: body.endDate
         };
 
-        if (!input.name || !input.description) {
-            throw new CustomError("Name and Description are required", 400);
+        if (
+            !input.name ||
+            !input.description ||
+            !input.startDate ||
+            !body.endDate
+        ) {
+            throw new CustomError("All FIelds are required", 400);
         }
 
         const project = await projectService.create(input, adminId);
 
-        res.status(201).send({
-            message: `New Project with name ${input.name} has been created`
+        res.status(201).json({
+            data: project
         });
     });
 
