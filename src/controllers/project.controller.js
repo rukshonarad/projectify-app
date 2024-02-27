@@ -55,8 +55,19 @@ class ProjectController {
         if (body.description) {
             update.description = body.description;
         }
+        if (body.startDate) {
+            update.startDate = body.startDate;
+        }
+        if (body.endDate) {
+            update.endDate = body.endDate;
+        }
 
-        if (!update.name && !update.description) {
+        if (
+            !update.name &&
+            !update.description &&
+            !update.name &&
+            !update.description
+        ) {
             throw new CustomError("No update data provided", 400);
         }
 
