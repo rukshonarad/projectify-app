@@ -18,14 +18,16 @@ class ProjectController {
             !input.startDate ||
             !input.endDate
         ) {
-            throw new CustomError("All FIelds are required", 400);
+            throw new CustomError("All Fields are required", 400);
         }
+
         if (new Date(input.startDate) >= new Date(input.endDate)) {
             throw new CustomError(
                 "Start Date cannot be greated than End Date",
                 400
             );
         }
+
         const project = await projectService.create(input, adminId);
 
         res.status(201).json({
@@ -71,23 +73,10 @@ class ProjectController {
         });
     });
 
-    archive = catchAsync(async (req, res) => {
-        const { params, adminId } = req;
+    changeStatus = catchAsync(async (req, res) => {
+        const { body, params, adminId } = req;
 
-        await projectService.changeStatus(params.id, adminId, "ARCHIVED");
-        res.status(204).send();
-    });
-
-    reactivate = catchAsync(async (req, res) => {
-        const { params, adminId } = req;
-
-        await projectService.changeStatus(params.id, adminId, "ACTIVE");
-        res.status(204).send();
-    });
-    onhold = catchAsync(async (req, res) => {
-        const { params, adminId } = req;
-
-        await projectService.changeStatus(params.id, adminId, "ONHOLD");
+        await projectService.changeStatus(params.id, adminId, body.status);
         res.status(204).send();
     });
 
