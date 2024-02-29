@@ -70,6 +70,22 @@ class ProjectController {
         ) {
             throw new CustomError("No update data provided", 400);
         }
+        if (
+            (update.startDate && !update.endDate) ||
+            (!update.startDate && update.endDate)
+        ) {
+            throw new CustomError(
+                "Both Start date and End date is required",
+                400
+            );
+        }
+
+        if (new Date(update.startDate) >= new Date(update.endDate)) {
+            throw new CustomError(
+                "End date cannot be equal or less than Start date",
+                400
+            );
+        }
 
         await projectService.update(params.id, adminId, update);
         res.status(204).send();
